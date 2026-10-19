@@ -17,17 +17,17 @@ function renderSubjects(container) {
     }
     return `
       <div class="deck-card subject-card" style="--subject:${s.color}" onclick="go('subject', {id:'${s.id}'})">
-        <div class="subject-emoji">${s.emoji}</div>
+        ${subjectBadge(s, 'lg')}
         <div class="deck-info" style="flex:1;">
           <h3>${esc(s.name)}</h3>
           <p>${meta}</p>
-          ${exam ? `<p class="exam-hint">📅 ${esc(exam.title)} in ${countdownText(exam.date)}</p>` : ''}
+          ${exam ? `<p class="exam-hint">${esc(exam.title)} in ${countdownText(exam.date)}</p>` : ''}
         </div>
         <span class="chev">›</span>
       </div>`;
   }).join('');
   container.innerHTML = `
-    <h2 class="page-title">📚 Deine Fächer</h2>
+    <h2 class="page-title">Fächer</h2>
     ${cards}
     <button class="btn btn-outline" onclick="openSubjectModal()">+ Fach hinzufügen</button>
   `;
@@ -38,7 +38,7 @@ function openSubjectModal(editId = null) {
   openModal(`
     <h3 class="modal-title">${s ? 'Fach bearbeiten' : 'Neues Fach'}</h3>
     <div style="display:flex; gap:10px; margin-bottom:12px;">
-      <input type="text" id="subEmoji" value="${esc(s?.emoji || '📘')}" maxlength="4" style="width:64px; text-align:center; font-size:18px;">
+      <input type="text" id="subAbbr" value="${esc(s?.abbr || '')}" maxlength="3" placeholder="Kürzel" style="width:84px; text-align:center;">
       <input type="text" id="subName" value="${esc(s?.name || '')}" placeholder="z. B. Deutsch, Religion, Physik" style="flex:1;">
     </div>
     <label class="field-label">Art des Fachs</label>
@@ -61,7 +61,7 @@ function saveSubject(editId) {
   const entry = {
     id: editId || 'f-' + uid(),
     name,
-    emoji: document.getElementById('subEmoji').value.trim() || '📘',
+    abbr: document.getElementById('subAbbr').value.trim() || '',
     kind: document.getElementById('subKind').value,
     lang: document.getElementById('subLang').value,
     color: pick(FOLDER_COLORS)
@@ -102,16 +102,16 @@ function renderSubject(container) {
 
   let html = `
     <div class="subject-head" style="--subject:${subject.color}">
-      ${backBtn(folder ? 'subject' : 'subjects', folder ? { id: subject.id } : {}, folder ? '← ' + esc(subject.name) : '← Fächer')}
-      <h2>${folder ? `${folder.emoji} ${esc(folder.name)}` : `${subject.emoji} ${esc(subject.name)}`}</h2>
-      ${folder ? `<button class="icon-btn" onclick="editFolder('${folder.id}')">✏️</button>` : isCustom ? `<button class="icon-btn" onclick="openSubjectModal('${subject.id}')">✏️</button>` : '<span></span>'}
+      ${backBtn(folder ? 'subject' : 'subjects', folder ? { id: subject.id } : {}, folder ? esc(subject.name) : 'Fächer')}
+      <h2>${folder ? esc(folder.name) : esc(subject.name)}</h2>
+      ${folder ? `<button class="icon-btn" onclick="editFolder('${folder.id}')" title="Bearbeiten">${icon('edit', 16)}</button>` : isCustom ? `<button class="icon-btn" onclick="openSubjectModal('${subject.id}')" title="Bearbeiten">${icon('edit', 16)}</button>` : '<span></span>'}
     </div>
     ${exam ? examBanner(exam) : ''}
     ${oneNoteBanner(subject.id)}
     <div class="quick-grid">
-      <button class="btn btn-primary" ${due ? '' : 'disabled'} onclick="startDueReview('${subject.id}')">🔁 Wiederholen${due ? ` (${due})` : ''}</button>
-      <button class="btn btn-outline" onclick="go('examSetup', {subject:'${subject.id}'})">📝 Probearbeit</button>
-      <button class="btn btn-outline" onclick="openTutor('${subject.id}')">💬 Nachhilfe</button>
+      <button class="btn btn-primary" ${due ? '' : 'disabled'} onclick="startDueReview('${subject.id}')">${icon('repeat', 16)} Wiederholen${due ? ` (${due})` : ''}</button>
+      <button class="btn btn-outline" onclick="go('examSetup', {subject:'${subject.id}'})">${icon('pen', 16)} Probearbeit</button>
+      <button class="btn btn-outline" onclick="openTutor('${subject.id}')">${icon('chat', 16)} Fragen</button>
     </div>
   `;
 
@@ -121,7 +121,7 @@ function renderSubject(container) {
       const count = state.data.decks.filter(d => d.folderId === f.id).length;
       return `
         <div class="deck-card" style="background:${f.color}; color:${getContrastColor(f.color)};" onclick="go('subject', {id:'${subject.id}', folderId:'${f.id}'})">
-          <div class="deck-info" style="flex:1;"><h3>${f.emoji} ${esc(f.name)}</h3><p style="color:inherit; opacity:.8;">${count} KARTEI${count === 1 ? '' : 'EN'}</p></div>
+          <div class="deck-info" style="flex:1;"><h3>${icon('folder', 17)} ${esc(f.name)}</h3><p style="color:inherit; opacity:.8;">${count} KARTEI${count === 1 ? '' : 'EN'}</p></div>
           <span class="chev">›</span>
         </div>`;
     }).join('');
@@ -131,19 +131,19 @@ function renderSubject(container) {
   const hasFolders = !folder && state.data.folders.some(f => f.subject === subject.id);
   if (!decks.length && !hasFolders) {
     html += `<div class="empty">${subject.kind === 'sprache'
-      ? 'Noch keine Vokabeln. Fotografier eine Vokabelliste aus dem Buch oder leg eine Kartei an.'
-      : 'Noch keine Lernkarten. Fotografier eine Buchseite oder deinen Hefteintrag, dann macht die KI Karten und Quizfragen daraus.'}</div>`;
+      ? 'Noch keine Vokabeln. Vokabelliste aus dem Buch fotografieren oder Kartei anlegen.'
+      : 'Noch keine Lernkarten. Buchseite oder Hefteintrag fotografieren, daraus werden Karten und Quizfragen.'}</div>`;
   }
   html += decks.map(deckCardHtml).join('');
 
   html += `
     <div class="action-grid">
       <input type="file" accept="image/*" id="scanInput" multiple hidden onchange="scanPhotos(event, '${subject.id}')">
-      <button class="btn btn-primary" onclick="document.getElementById('scanInput').click()">📷 ${subject.kind === 'sprache' ? 'Vokabeln scannen' : 'Buchseite scannen'}</button>
-      <button class="btn btn-outline" onclick="openAiTopicModal('${subject.id}')">✨ Thema per KI erstellen</button>
+      <button class="btn btn-primary" onclick="document.getElementById('scanInput').click()">${icon('camera')} ${subject.kind === 'sprache' ? 'Vokabeln scannen' : 'Buchseite scannen'}</button>
+      <button class="btn btn-outline" onclick="openAiTopicModal('${subject.id}')">${icon('pen')} Thema eingeben</button>
       <div class="row-2">
         <button class="btn btn-outline" onclick="newDeck('${subject.id}')">+ Kartei</button>
-        ${folder ? '' : `<button class="btn btn-outline" onclick="createFolder('${subject.id}')">📁 Ordner</button>`}
+        ${folder ? '' : `<button class="btn btn-outline" onclick="createFolder('${subject.id}')">${icon('folder')} Ordner</button>`}
       </div>
     </div>
   `;
@@ -161,10 +161,10 @@ function deckCardHtml(d) {
         <div class="bar small"><div style="width:${st.pct}%"></div></div>
       </div>
       <div class="deck-actions" onclick="event.stopPropagation()">
-        ${st.weak ? `<button class="icon-btn" style="color:var(--red)" onclick="practiceWeak('${d.id}')" title="Schwierige üben">🎯 ${st.weak}</button>` : ''}
-        <button class="icon-btn" onclick="chooseFolderForDeck('${d.id}')" title="Verschieben">📁</button>
-        <button class="icon-btn" onclick="editDeck('${d.id}')" title="Bearbeiten">✏️</button>
-        <button class="icon-btn" onclick="deleteDeck('${d.id}')" title="Löschen">🗑️</button>
+        ${st.weak ? `<button class="icon-btn" style="color:var(--red)" onclick="practiceWeak('${d.id}')" title="Schwierige üben">${icon('target', 16)} ${st.weak}</button>` : ''}
+        <button class="icon-btn" onclick="chooseFolderForDeck('${d.id}')" title="Verschieben">${icon('folder', 16)}</button>
+        <button class="icon-btn" onclick="editDeck('${d.id}')" title="Bearbeiten">${icon('edit', 16)}</button>
+        <button class="icon-btn" onclick="deleteDeck('${d.id}')" title="Löschen">${icon('trash', 16)}</button>
       </div>
     </div>`;
 }
@@ -175,7 +175,6 @@ function folderModal(title, f, onSave) {
   openModal(`
     <h3 class="modal-title">${title}</h3>
     <div style="display:flex; gap:10px; margin-bottom:14px;">
-      <input type="text" id="folderEmoji" value="${esc(f?.emoji || '📁')}" maxlength="4" style="width:64px; text-align:center; font-size:18px;">
       <input type="text" id="folderName" value="${esc(f?.name || '')}" placeholder="Name des Ordners" style="flex:1;" onkeydown="if(event.key==='Enter') ${onSave}">
     </div>
     <label class="field-label">Farbe</label>
@@ -200,10 +199,9 @@ function editFolder(id) {
 function confirmFolder(id, subjectId) {
   const name = document.getElementById('folderName').value.trim();
   if (!name) return;
-  const emoji = document.getElementById('folderEmoji').value.trim() || '📁';
   const color = document.getElementById('folderColor').value;
-  if (id) Object.assign(state.data.folders.find(f => f.id === id), { name, emoji, color });
-  else state.data.folders.push({ id: uid(), name, emoji, color, subject: subjectId });
+  if (id) Object.assign(state.data.folders.find(f => f.id === id), { name, color });
+  else state.data.folders.push({ id: uid(), name, color, subject: subjectId });
   saveData();
   closeModal();
   render();
@@ -223,11 +221,11 @@ function chooseFolderForDeck(deckId) {
   const folders = state.data.folders.filter(f => f.subject === deck.subject);
   openModal(`
     <h3 class="modal-title">Kartei verschieben</h3>
-    <button class="btn btn-outline" style="margin-bottom:10px;" onclick="setDeckFolder('${deckId}', null)">🚫 Kein Ordner</button>
-    ${folders.map(f => `<button class="btn btn-outline" style="margin-bottom:8px;" onclick="setDeckFolder('${deckId}', '${f.id}')">${f.emoji} ${esc(f.name)}</button>`).join('') || '<p class="note">In diesem Fach gibt es noch keine Ordner.</p>'}
+    <button class="btn btn-outline" style="margin-bottom:10px;" onclick="setDeckFolder('${deckId}', null)">Kein Ordner</button>
+    ${folders.map(f => `<button class="btn btn-outline" style="margin-bottom:8px;" onclick="setDeckFolder('${deckId}', '${f.id}')">${esc(f.name)}</button>`).join('') || '<p class="note">In diesem Fach gibt es noch keine Ordner.</p>'}
     <label class="field-label" style="margin-top:14px;">Oder in ein anderes Fach</label>
     <select onchange="moveDeckSubject('${deckId}', this.value)">
-      ${getSubjects().filter(s => s.kind !== 'mathe').map(s => `<option value="${s.id}" ${s.id === deck.subject ? 'selected' : ''}>${s.emoji} ${esc(s.name)}</option>`).join('')}
+      ${getSubjects().filter(s => s.kind !== 'mathe').map(s => `<option value="${s.id}" ${s.id === deck.subject ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}
     </select>
   `);
 }
@@ -290,11 +288,11 @@ function renderDeckEdit(container) {
         ${vocab
           ? `<input type="text" value="${esc(c.translation)}" placeholder="Deutsch" oninput="state.editor.cards[${i}].translation=this.value">`
           : `<textarea rows="2" placeholder="Erklärung oder Antwort" oninput="state.editor.cards[${i}].translation=this.value">${esc(c.translation)}</textarea>`}
-        ${c.img ? `<div class="edit-img">${imgTag(c.img, 'thumb')}<button class="icon-btn small" onclick="state.editor.cards[${i}].img=null; render();">✕ Bild</button></div>` : ''}
+        ${c.img ? `<div class="edit-img">${imgTag(c.img, 'thumb')}<button class="icon-btn small" onclick="state.editor.cards[${i}].img=null; render();">Bild entfernen</button></div>` : ''}
       </div>
       <div class="edit-btns">
-        <button class="icon-btn small" onclick="state.editor.cards.splice(${i},1); render();" title="Zeile löschen">✕</button>
-        <button class="icon-btn small" onclick="pickImage('setCardImage', ${i})" title="Bild auf die Karte">🖼️</button>
+        <button class="icon-btn small" onclick="state.editor.cards.splice(${i},1); render();" title="Zeile löschen">${icon('close', 14)}</button>
+        <button class="icon-btn small" onclick="pickImage('setCardImage', ${i})" title="Bild auf die Karte">${icon('image', 14)}</button>
       </div>
     </div>`).join('');
 
@@ -302,17 +300,17 @@ function renderDeckEdit(container) {
     <div class="card">
       <input class="editor-header" type="text" value="${esc(ed.name)}" oninput="state.editor.name=this.value" placeholder="Name der Kartei">
       <div class="toggle-row">
-        <div class="toggle-btn ${vocab ? 'active' : ''}" onclick="state.editor.type='vocab'; render();">🔤 Vokabeln</div>
-        <div class="toggle-btn ${!vocab ? 'active' : ''}" onclick="state.editor.type='facts'; render();">🧠 Lernkarten</div>
+        <div class="toggle-btn ${vocab ? 'active' : ''}" onclick="state.editor.type='vocab'; render();">Vokabeln</div>
+        <div class="toggle-btn ${!vocab ? 'active' : ''}" onclick="state.editor.type='facts'; render();">Lernkarten</div>
       </div>
-      ${vocab ? `<button class="btn btn-outline btn-sm" style="margin-bottom:12px;" onclick="openLanguagePicker()">🌐 Sprache: ${esc(langName)} ändern</button>` : ''}
-      ${ed.quiz.length ? `<p class="note" style="margin-bottom:10px;">✅ ${ed.quiz.length} Quizfragen hängen an dieser Kartei.</p>` : ''}
-      ${ed.pages.length ? `<div class="page-strip"><span class="mini-label">📄 Buchseiten</span>${ed.pages.map((id, n) => `<span class="page-thumb">${imgTag(id, 'thumb')}<button onclick="state.editor.pages.splice(${n},1); render();">✕</button></span>`).join('')}</div>` : ''}
+      ${vocab ? `<button class="btn btn-outline btn-sm" style="margin-bottom:12px;" onclick="openLanguagePicker()">Sprache: ${esc(langName)}</button>` : ''}
+      ${ed.quiz.length ? `<p class="note" style="margin-bottom:10px;">Dazu ${ed.quiz.length} Quizfragen.</p>` : ''}
+      ${ed.pages.length ? `<div class="page-strip"><span class="mini-label">Buchseiten</span>${ed.pages.map((id, n) => `<span class="page-thumb">${imgTag(id, 'thumb')}<button onclick="state.editor.pages.splice(${n},1); render();">✕</button></span>`).join('')}</div>` : ''}
       <div class="edit-list">${rows}</div>
       <div class="row-2" style="margin:12px 0 18px;">
         <button class="btn btn-outline btn-sm" onclick="state.editor.cards.push({id:uid(), term:'', translation:''}); render(); setTimeout(()=>{const l=document.querySelectorAll('.edit-row input'); l[l.length-(state.editor.type==='vocab'?2:1)]?.focus();},30);">+ Zeile</button>
         <input type="file" accept="image/*" id="scanAppend" multiple hidden onchange="scanPhotos(event, state.editor.subject, true)">
-        <button class="btn btn-outline btn-sm" onclick="document.getElementById('scanAppend').click()">📷 Seite dazu scannen</button>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('scanAppend').click()">${icon('camera', 15)} Seite dazu</button>
       </div>
       <div class="row-2">
         <button class="btn btn-outline" onclick="go('subject', {id: state.editor.subject})">Abbrechen</button>
@@ -437,8 +435,8 @@ function openAiTopicModal(subjectId) {
     sach: { geschichte: 'z. B. "Ursachen des Ersten Weltkriegs" oder "Weimarer Republik"', erdkunde: 'z. B. "Klimazonen der Erde" oder "Plattentektonik"', biologie: 'z. B. "Aufbau der Zelle" oder "Genetik: Mendelsche Regeln"' }[subjectId] || 'z. B. ein Thema aus dem Unterricht'
   }[subject.kind];
   openModal(`
-    <h3 class="modal-title">✨ Thema per KI</h3>
-    <p class="note" style="margin-bottom:12px;">Beschreib das Thema so genau wie möglich. Am besten so, wie es im Buch oder auf dem Arbeitsblatt heißt.</p>
+    <h3 class="modal-title">Thema eingeben</h3>
+    <p class="note" style="margin-bottom:12px;">Am besten so, wie es im Buch oder auf dem Arbeitsblatt heißt.</p>
     <textarea id="aiTopic" rows="3" placeholder="${esc(examples)}"></textarea>
     <label class="field-label" style="margin-top:12px;">Umfang</label>
     <select id="aiAmount">
@@ -460,7 +458,7 @@ async function createAiTopic(subjectId) {
   const subject = getSubject(subjectId);
   const back = { ...state.params };
   closeModal();
-  renderLoading('Die KI erstellt deine Lernkarten');
+  renderLoading('Lernkarten werden erstellt');
   const prompt = subject.kind === 'sprache'
     ? `${SCHOOL_CONTEXT} Fremdsprache: ${getLangConfig(subject.lang).name}. Thema: "${topic}".
 Wenn es um Wortschatz geht: erstelle etwa ${amount} Vokabelkarten mit "term" in der Fremdsprache und "translation" auf Deutsch und setze "type":"vocab".
@@ -503,8 +501,8 @@ function renderDeckSetup(container) {
   if (p.shuffle === undefined) p.shuffle = true;
 
   const modes = vocab
-    ? [['classic', '🎴 Karten'], ['writing', '⌨️ Schreiben'], ['mc', '🔘 Auswahl'], ['speech', '🗣️ Sprechen']]
-    : [['classic', '🎴 Karten'], ['mc', '🔘 Auswahl'], ...(deck.quiz.length ? [['quiz', `❓ Quiz (${deck.quiz.length})`]] : [])];
+    ? [['classic', 'Karten'], ['writing', 'Schreiben'], ['mc', 'Auswahl'], ['speech', 'Sprechen']]
+    : [['classic', 'Karten'], ['mc', 'Auswahl'], ...(deck.quiz.length ? [['quiz', `Quiz (${deck.quiz.length})`]] : [])];
 
   const rows = deck.cards.map((c, i) => `
     <label class="setup-row">
@@ -518,13 +516,13 @@ function renderDeckSetup(container) {
       <div class="setup-header">
         ${backBtn('subject', { id: deck.subject, folderId: deck.folderId || undefined })}
         <h3>${esc(deck.name)}</h3>
-        <button class="icon-btn" onclick="editDeck('${deck.id}')">✏️</button>
+        <button class="icon-btn" onclick="editDeck('${deck.id}')" title="Bearbeiten">${icon('edit', 16)}</button>
       </div>
       <p class="note" style="margin-bottom:12px;">${st.total} Karten · ${st.mastered} sicher · ${st.due} fällig · ${st.fresh} neu</p>
       <div class="page-strip">
-        <span class="mini-label">📄 Buchseiten</span>
+        <span class="mini-label">Buchseiten</span>
         ${(deck.pages || []).map(id => `<span class="page-thumb">${imgTag(id, 'thumb')}</span>`).join('')}
-        <button class="icon-btn small" onclick="pickImage('addDeckPage', '${deck.id}')">+ Bild</button>
+        <button class="icon-btn small" onclick="pickImage('addDeckPage', '${deck.id}')">${icon('plus', 14)} Bild</button>
       </div>
       <div class="toggle-row">${modes.map(([id, label]) => `<div class="toggle-btn ${p.mode === id ? 'active' : ''}" onclick="state.params.mode='${id}'; render();">${label}</div>`).join('')}</div>
       ${p.mode !== 'quiz' ? `
@@ -533,8 +531,8 @@ function renderDeckSetup(container) {
         <div class="toggle-btn ${p.dir === 'target-source' ? 'active' : ''}" onclick="state.params.dir='target-source'; render();">${vocab ? 'DE → ' + langName : 'Erklärung → Begriff'}</div>
       </div>` : ''}
       <div class="toggle-row">
-        <div class="toggle-btn ${!p.shuffle ? 'active' : ''}" onclick="state.params.shuffle=false; render();">📋 Reihenfolge</div>
-        <div class="toggle-btn ${p.shuffle ? 'active' : ''}" onclick="state.params.shuffle=true; render();">🔀 Zufällig</div>
+        <div class="toggle-btn ${!p.shuffle ? 'active' : ''}" onclick="state.params.shuffle=false; render();">Reihenfolge</div>
+        <div class="toggle-btn ${p.shuffle ? 'active' : ''}" onclick="state.params.shuffle=true; render();">Zufällig</div>
       </div>
       ${p.mode !== 'quiz' ? `
       <div class="sel-bar">
@@ -547,7 +545,7 @@ function renderDeckSetup(container) {
         </div>
       </div>
       <div class="setup-list">${rows}</div>` : ''}
-      <button class="btn btn-primary" style="margin-top:16px;" onclick="startDeckPractice()">▶ Starten</button>
+      <button class="btn btn-primary" style="margin-top:16px;" onclick="startDeckPractice()">Starten</button>
     </div>`;
 }
 
@@ -593,7 +591,7 @@ function practiceWeak(deckId) {
 
 function startDueReview(subjectId = null) {
   const due = shuffle(allDueCards(subjectId)).slice(0, 40);
-  if (!due.length) return toast('Gerade ist nichts fällig. Stark!');
+  if (!due.length) return toast('Gerade ist nichts fällig.');
   startPractice({
     title: 'Wiederholung' + (subjectId ? ' ' + getSubject(subjectId).name : ''), subject: subjectId, mode: 'classic', dir: 'source-target', shuffle: false,
     items: due.map(x => ({ kind: 'card', card: x.card, deckId: x.deckId })), ref: { type: 'review' },
@@ -651,8 +649,8 @@ function renderPractice(container) {
 
   const top = `
     <div class="practice-top">
-      <button class="icon-btn" onclick="quitPractice()">✕</button>
-      <span class="mono-muted">${pr.correct} ✓ · ${pr.wrong} ✕${pr.streak >= 3 ? ' · 🔥' + pr.streak : ''}</span>
+      <button class="icon-btn" onclick="quitPractice()" aria-label="Beenden">${icon('close', 16)}</button>
+      <span class="mono-muted">${pr.correct} richtig · ${pr.wrong} falsch</span>
     </div>
     <div class="progress-dashes">${pr.status.map(s => `<span class="${s}"></span>`).join('')}</div>`;
 
@@ -666,24 +664,24 @@ function renderPractice(container) {
       <div class="flashcard ${pr.flipped ? 'flipped' : ''}" id="cardElement">
         <div class="card-face">
           <div class="label">${esc(s.frontLabel)}</div>
-          ${s.vocab ? `<button class="tts-btn" onclick='event.stopPropagation(); speakWord(${jsArg(s.front)}, "${s.frontLang}")'>🔊</button>` : ''}
+          ${s.vocab ? `<button class="tts-btn" onclick='event.stopPropagation(); speakWord(${jsArg(s.front)}, "${s.frontLang}")' aria-label="Vorlesen">${icon('speaker', 16)}</button>` : ''}
           ${s.frontImg ? imgTag(s.frontImg, 'card-img') : ''}
           <div class="word ${s.front.length > 60 ? 'long' : ''}">${esc(s.front)}</div>
           <div class="tap-hint">Tippen zum Umdrehen</div>
         </div>
         <div class="card-face back">
           <div class="label">${esc(s.backLabel)}</div>
-          ${s.vocab ? `<button class="tts-btn" onclick='event.stopPropagation(); speakWord(${jsArg(s.back)}, "${s.backLang}")'>🔊</button>` : ''}
+          ${s.vocab ? `<button class="tts-btn" onclick='event.stopPropagation(); speakWord(${jsArg(s.back)}, "${s.backLang}")' aria-label="Vorlesen">${icon('speaker', 16)}</button>` : ''}
           ${s.backImg ? imgTag(s.backImg, 'card-img') : ''}
           <div class="word ${s.back.length > 60 ? 'long' : ''}">${esc(s.back)}</div>
         </div>
       </div>
     </div>
     <div class="row-2">
-      <button class="btn btn-danger" onclick="answerItem(false)">✕ Nicht gewusst</button>
-      <button class="btn btn-success" onclick="answerItem(true)">✓ Gewusst</button>
+      <button class="btn btn-danger" onclick="answerItem(false)">Nicht gewusst</button>
+      <button class="btn btn-success" onclick="answerItem(true)">Gewusst</button>
     </div>
-    <p class="note center">Tastatur: Leertaste dreht um, ← nicht gewusst, → gewusst</p>`;
+    <p class="note center">Leertaste: umdrehen · Pfeil links: nicht gewusst · Pfeil rechts: gewusst</p>`;
 }
 
 function renderChoiceItem(container, top, item) {
@@ -705,9 +703,9 @@ function renderChoiceItem(container, top, item) {
         }).join('')}
       </div>
       ${fb ? `
-        <div class="feedback ${fb.ok ? 'ok' : 'bad'}">${fb.ok ? 'Richtig! 🎉' : 'Leider falsch.'}${data.explain ? `<p>${esc(data.explain)}</p>` : ''}</div>
-        ${fb.ok ? '' : `<button class="btn btn-outline btn-sm" style="margin-bottom:10px;" onclick='explainItem()'>🤖 Erklär mir das</button>`}
-        <button class="btn btn-primary" onclick="nextItem()">Weiter →</button>` : ''}
+        <div class="feedback ${fb.ok ? 'ok' : 'bad'}">${fb.ok ? 'Richtig.' : 'Falsch.'}${data.explain ? `<p>${esc(data.explain)}</p>` : ''}</div>
+        ${fb.ok ? '' : `<button class="btn btn-outline btn-sm" style="margin-bottom:10px;" onclick='explainItem()'>Erklärung</button>`}
+        <button class="btn btn-primary" onclick="nextItem()">Weiter</button>` : ''}
     </div>`;
 }
 
@@ -731,9 +729,9 @@ function renderWritingItem(container, top, item) {
       <div class="question-text big">${esc(s.front)}</div>
       <input id="writingAnswer" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" ${fb ? 'disabled' : ''} value="${esc(fb?.typed || '')}" placeholder="Übersetzung eintippen" onkeydown="if(event.key==='Enter') checkWriting()">
       ${fb ? `
-        <div class="feedback ${fb.ok ? 'ok' : 'bad'}">${fb.ok ? 'Richtig! 🎉' : 'Richtig wäre:'} <b>${esc(s.back)}</b></div>
-        ${fb.ok ? '' : `<button class="btn btn-outline btn-sm" style="margin-bottom:10px;" onclick="overrideWriting()">Ich hatte es richtig (Tippfehler)</button>`}
-        <button class="btn btn-primary" id="nextBtn" onclick="nextItem()">Weiter →</button>`
+        <div class="feedback ${fb.ok ? 'ok' : 'bad'}">${fb.ok ? 'Richtig:' : 'Richtig wäre:'} <b>${esc(s.back)}</b></div>
+        ${fb.ok ? '' : `<button class="btn btn-outline btn-sm" style="margin-bottom:10px;" onclick="overrideWriting()">War nur ein Tippfehler</button>`}
+        <button class="btn btn-primary" id="nextBtn" onclick="nextItem()">Weiter</button>`
       : `<div class="row-2" style="margin-top:14px;">
           <button class="btn btn-outline" onclick="checkWriting(true)">Lösung zeigen</button>
           <button class="btn btn-primary" onclick="checkWriting()">Prüfen</button>
@@ -774,9 +772,9 @@ function renderSpeechItem(container, top, item) {
     <div class="card question-card center">
       <div class="mini-label">Sag es auf ${esc(getLangConfig(s.backLang).name)}</div>
       <div class="question-text big">${esc(s.front)}</div>
-      <button class="btn btn-outline btn-sm" style="width:auto; margin:0 auto 12px;" onclick='speakWord(${jsArg(s.back)}, "${s.backLang}")'>🔊 Musterlösung anhören</button>
+      <button class="btn btn-outline btn-sm" style="width:auto; margin:0 auto 12px;" onclick='speakWord(${jsArg(s.back)}, "${s.backLang}")'>${icon('speaker', 15)} Anhören</button>
       <div class="speech-box">
-        <button class="mic-btn ${sp.recording ? 'recording' : ''}" onclick='startSpeech(${jsArg(s.back)}, "${s.backLang}")'>🎙️</button>
+        <button class="mic-btn ${sp.recording ? 'recording' : ''}" onclick='startSpeech(${jsArg(s.back)}, "${s.backLang}")' aria-label="Aufnehmen">${icon('mic', 28)}</button>
         ${sp.recording ? '<p class="note">Sprich jetzt, die Aufnahme endet automatisch.</p>' : ''}
         ${sp.heard ? `<p class="mono">Erkannt: "${esc(sp.heard)}"</p>` : ''}
         ${sp.error ? `<p class="note" style="color:var(--red)">${esc(sp.error)}</p>` : ''}
@@ -910,15 +908,15 @@ function renderSummary(container) {
   const [screen, params] = pr.returnTo || ['home', {}];
   container.innerHTML = `
     <div class="card center" style="padding:32px 20px;">
-      <div style="font-size:46px;">${pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 40 ? '💪' : '🌱'}</div>
-      <h2 class="mono">${pct >= 90 ? 'Überragend!' : pct >= 70 ? 'Gut gemacht!' : pct >= 40 ? 'Weiter so!' : 'Dranbleiben lohnt sich!'}</h2>
+      <div class="big-number">${pct}%</div>
+      <h2 class="mono">Runde fertig</h2>
       <p class="note">${esc(pr.title)}</p>
       <div class="stat-grid">
         <div><strong style="color:var(--green)">${firstTry}</strong><small>direkt gewusst</small></div>
         <div><strong style="color:var(--red)">${hard}</strong><small>schwierig</small></div>
         <div><strong>+${pr.correct * 10 + pr.wrong * 2 + 20}</strong><small>XP</small></div>
       </div>
-      ${hard ? `<button class="btn btn-danger" style="margin-bottom:12px;" onclick="retryHard()">🎯 Schwierige nochmal</button>` : ''}
+      ${hard ? `<button class="btn btn-danger" style="margin-bottom:12px;" onclick="retryHard()">Schwierige nochmal</button>` : ''}
       <button class="btn btn-primary" onclick='state.practice=null; go(${JSON.stringify(screen)}, ${esc(JSON.stringify(params))})'>Weiter</button>
     </div>`;
 }

@@ -21,35 +21,35 @@ function renderMathSubject(container, subject) {
 
   const sets = state.data.mathSets.map(s => `
     <div class="deck-card" onclick="startMathRun({ setId: '${s.id}' })">
-      <div class="deck-info" style="flex:1;"><h3>${esc(s.title)}</h3><p>${s.tasks.length} AUFGABEN · ${s.source === 'foto' ? 'AUS FOTO' : s.source === 'onenote' ? 'AUS ONENOTE' : 'PER KI'}</p></div>
+      <div class="deck-info" style="flex:1;"><h3>${esc(s.title)}</h3><p>${s.tasks.length} AUFGABEN · ${s.source === 'foto' ? 'AUS FOTO' : s.source === 'onenote' ? 'AUS ONENOTE' : 'EIGENE'}</p></div>
       <div class="deck-actions" onclick="event.stopPropagation()">
-        <button class="icon-btn" onclick="deleteMathSet('${s.id}')">🗑️</button>
+        <button class="icon-btn" onclick="deleteMathSet('${s.id}')" title="Löschen">${icon('trash', 16)}</button>
       </div>
     </div>`).join('');
 
   container.innerHTML = `
     <div class="subject-head" style="--subject:${subject.color}">
-      ${backBtn('subjects', {}, '← Fächer')}
-      <h2>${subject.emoji} Mathe</h2>
+      ${backBtn('subjects', {}, 'Fächer')}
+      <h2>Mathe</h2>
       <span></span>
     </div>
     ${exam ? examBanner(exam) : ''}
     ${oneNoteBanner('mathe')}
     <div class="quick-grid">
-      <button class="btn btn-primary" onclick="openMixModal()">🎲 Gemischt üben</button>
-      <button class="btn btn-outline" onclick="go('examSetup', {subject:'mathe'})">📝 Probearbeit</button>
-      <button class="btn btn-outline" onclick="openTutor('mathe')">💬 Nachhilfe</button>
+      <button class="btn btn-primary" onclick="openMixModal()">${icon('shuffle', 16)} Gemischt</button>
+      <button class="btn btn-outline" onclick="go('examSetup', {subject:'mathe'})">${icon('pen', 16)} Probearbeit</button>
+      <button class="btn btn-outline" onclick="openTutor('mathe')">${icon('chat', 16)} Fragen</button>
     </div>
     <div class="card">
-      <p class="note" style="margin-top:0;">Jede Aufgabe wird neu ausgewürfelt. Du bekommst Tipps und den kompletten Lösungsweg, auch ohne KI-Key.</p>
+      <p class="note" style="margin-top:0;">Jede Aufgabe wird neu ausgewürfelt, mit Tipps und komplettem Lösungsweg.</p>
       ${topicRows}
     </div>
-    <h3 class="group-title">Deine Aufgaben aus Fotos und KI</h3>
-    ${sets || '<div class="empty">Fotografier ein Arbeitsblatt oder deine Hausaufgabe. Die KI löst alles mit Lösungsweg und macht dir ähnliche Übungsaufgaben.</div>'}
+    <h3 class="group-title">Eigene Aufgaben</h3>
+    ${sets || '<div class="empty">Arbeitsblatt oder Hausaufgabe fotografieren. Alles wird mit Lösungsweg gelöst, dazu kommen ähnliche Übungsaufgaben.</div>'}
     <div class="action-grid">
       <input type="file" accept="image/*" id="mathScan" multiple hidden onchange="scanMath(event)">
-      <button class="btn btn-primary" onclick="document.getElementById('mathScan').click()">📷 Arbeitsblatt fotografieren</button>
-      <button class="btn btn-outline" onclick="openMathAiModal()">✨ Aufgaben per KI erstellen</button>
+      <button class="btn btn-primary" onclick="document.getElementById('mathScan').click()">${icon('camera')} Arbeitsblatt fotografieren</button>
+      <button class="btn btn-outline" onclick="openMathAiModal()">${icon('pen')} Thema eingeben</button>
     </div>
   `;
 }
@@ -57,8 +57,8 @@ function renderMathSubject(container, subject) {
 function openMixModal() {
   const groups = [...new Set(MATH_TOPICS.map(t => t.group))];
   openModal(`
-    <h3 class="modal-title">🎲 Gemischt üben</h3>
-    <p class="note" style="margin-bottom:10px;">Wähle die Themen aus. Am besten genau das, was in der Arbeit drankommt.</p>
+    <h3 class="modal-title">Gemischt üben</h3>
+    <p class="note" style="margin-bottom:10px;">Themen auswählen, am besten das, was in der Arbeit drankommt.</p>
     <div class="check-list">
       ${groups.map(g => `<p class="mini-label" style="margin-top:8px;">${esc(g)}</p>` + MATH_TOPICS.filter(t => t.group === g).map(t => `
         <label class="check-row"><input type="checkbox" class="mixTopic" value="${t.id}" ${g === 'Lineare Gleichungssysteme' ? 'checked' : ''}> ${esc(t.name)}</label>`).join('')).join('')}
@@ -156,11 +156,11 @@ function renderMathRun(container) {
   let after = '';
   if (run.checked) {
     after = `
-      <div class="feedback ${run.ok ? 'ok' : 'bad'}">${run.ok ? 'Richtig! 🎉' : `Noch nicht. Richtig ist: <b>${esc(answerText(task))}</b>`}</div>
-      <details class="solution" ${run.ok ? '' : 'open'}><summary>📖 Lösungsweg</summary>${stepsHtml(task)}${task.plot ? plotSvg(task.plot) : ''}</details>
+      <div class="feedback ${run.ok ? 'ok' : 'bad'}">${run.ok ? 'Richtig.' : `Falsch. Richtig ist: <b>${esc(answerText(task))}</b>`}</div>
+      <details class="solution" ${run.ok ? '' : 'open'}><summary>Lösungsweg</summary>${stepsHtml(task)}${task.plot ? plotSvg(task.plot) : ''}</details>
       <div class="row-2">
-        <button class="btn btn-outline" onclick="explainMath()">🤖 Frag die KI</button>
-        <button class="btn btn-primary" id="mathNext" onclick="nextMathTask(); render();">Weiter →</button>
+        <button class="btn btn-outline" onclick="explainMath()">Nachfragen</button>
+        <button class="btn btn-primary" id="mathNext" onclick="nextMathTask(); render();">Weiter</button>
       </div>`;
   } else if (task.selfCheck) {
     after = run.revealed ? `
@@ -175,17 +175,17 @@ function renderMathRun(container) {
       <button class="btn btn-primary" onclick="state.mathRun.revealed=true; render();">Lösung zeigen</button>`;
   } else {
     after = `
-      ${run.hint ? `<div class="hint-box">💡 ${stepsHtml(task, run.hint)}</div>` : ''}
+      ${run.hint ? `<div class="hint-box"><span class="mini-label">Tipp</span>${stepsHtml(task, run.hint)}</div>` : ''}
       <div class="row-2">
-        <button class="btn btn-outline" ${run.hint >= task.steps.length - 1 ? 'disabled' : ''} onclick="state.mathRun.hint++; render();">💡 Tipp</button>
+        <button class="btn btn-outline" ${run.hint >= task.steps.length - 1 ? 'disabled' : ''} onclick="state.mathRun.hint++; render();">${icon('bulb', 16)} Tipp</button>
         ${task.choices ? '<span></span>' : `<button class="btn btn-primary" onclick="checkMath()">Prüfen</button>`}
       </div>`;
   }
 
   container.innerHTML = `
     <div class="practice-top">
-      <button class="icon-btn" onclick="quitMathRun()">✕</button>
-      <span class="mono-muted">${run.index + 1} / ${run.count} · ${run.correct} ✓</span>
+      <button class="icon-btn" onclick="quitMathRun()" aria-label="Beenden">${icon('close', 16)}</button>
+      <span class="mono-muted">${run.index + 1} / ${run.count} · ${run.correct} richtig</span>
     </div>
     <div class="progress-dashes">${dots}</div>
     <div class="card question-card math-card">
@@ -256,12 +256,12 @@ function renderMathSummary(container) {
   const pct = Math.round(run.correct / run.count * 100);
   container.innerHTML = `
     <div class="card center" style="padding:32px 20px;">
-      <div style="font-size:46px;">${pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 40 ? '💪' : '🌱'}</div>
+      <div class="big-number">${pct}%</div>
       <h2 class="mono">${run.correct} von ${run.count} richtig</h2>
       <p class="note">${esc(run.title)}</p>
       <div class="bar" style="margin:18px 0;"><div style="width:${pct}%"></div></div>
-      ${pct < 70 ? '<p class="note" style="margin-bottom:14px;">Tipp: Schau dir die Lösungswege nochmal an und mach direkt noch eine Runde. Wiederholung macht den Unterschied.</p>' : ''}
-      <button class="btn btn-primary" style="margin-bottom:12px;" onclick="startMathRun({ topics: state.mathRun.topics, setId: state.mathRun.setId, count: state.mathRun.count })">🔁 Noch eine Runde</button>
+      ${pct < 70 ? '<p class="note" style="margin-bottom:14px;">Lösungswege nochmal anschauen und direkt noch eine Runde machen.</p>' : ''}
+      <button class="btn btn-primary" style="margin-bottom:12px;" onclick="startMathRun({ topics: state.mathRun.topics, setId: state.mathRun.setId, count: state.mathRun.count })">Noch eine Runde</button>
       <button class="btn btn-outline" onclick="state.mathRun=null; go('subject', {id:'mathe'})">Zurück zu Mathe</button>
     </div>`;
 }
@@ -297,7 +297,7 @@ async function scanMath(e) {
   const tasks = [];
   let title = '', error = '';
   for (let i = 0; i < files.length; i++) {
-    renderLoading(`Foto ${i + 1} von ${files.length}: Die KI rechnet`);
+    renderLoading(`Foto ${i + 1} von ${files.length} wird gelesen`);
     try {
       const img = await compressImage(files[i], 1600);
       const res = await aiAsk(`${SCHOOL_CONTEXT} Das Foto zeigt Mathe-Aufgaben (Arbeitsblatt, Buch oder Heft). Übernimm jede erkennbare Aufgabe, bei Teilaufgaben a), b), c) jede einzeln, und löse sie Schritt für Schritt. Erzeuge danach 3 ähnliche neue Übungsaufgaben mit anderen Zahlen. ${MATH_TASK_FORMAT}`, [img]);
@@ -318,8 +318,8 @@ async function scanMath(e) {
 function openMathAiModal() {
   if (!requireAi()) return;
   openModal(`
-    <h3 class="modal-title">✨ Aufgaben per KI</h3>
-    <p class="note" style="margin-bottom:10px;">Welche Aufgaben brauchst du? Je genauer, desto besser.</p>
+    <h3 class="modal-title">Aufgaben zu einem Thema</h3>
+    <p class="note" style="margin-bottom:10px;">Je genauer, desto besser.</p>
     <textarea id="mathAiTopic" rows="3" placeholder="z. B. Textaufgaben zu linearen Gleichungssystemen wie in der Klassenarbeit"></textarea>
     <label class="field-label" style="margin-top:12px;">Anzahl</label>
     <select id="mathAiCount"><option>5</option><option selected>8</option><option>12</option></select>
@@ -335,7 +335,7 @@ async function createMathAi() {
   const count = document.getElementById('mathAiCount').value;
   if (!topic) return;
   closeModal();
-  renderLoading('Die KI erstellt deine Aufgaben');
+  renderLoading('Aufgaben werden erstellt');
   try {
     const res = await aiAsk(`${SCHOOL_CONTEXT} Erstelle ${count} Mathe-Übungsaufgaben zum Thema: "${topic}". Steigere den Schwierigkeitsgrad leicht. ${MATH_TASK_FORMAT}`);
     const tasks = cleanMathTasks(res.tasks);

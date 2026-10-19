@@ -57,11 +57,11 @@ function toast(msg) {
 // ---------- Navigation ----------
 
 const NAV = [
-  { screen: 'home',     icon: '🏠', label: 'Heute' },
-  { screen: 'subjects', icon: '📚', label: 'Fächer' },
-  { screen: 'plan',     icon: '📅', label: 'Plan' },
-  { screen: 'tutor',    icon: '💬', label: 'Nachhilfe' },
-  { screen: 'profile',  icon: '⭐', label: 'Profil' }
+  { screen: 'home',     icon: 'home', label: 'Heute' },
+  { screen: 'subjects', icon: 'books', label: 'Fächer' },
+  { screen: 'plan',     icon: 'calendar', label: 'Plan' },
+  { screen: 'tutor',    icon: 'chat', label: 'Fragen' },
+  { screen: 'profile',  icon: 'user', label: 'Profil' }
 ];
 
 // Bildschirme, in denen die Leiste unten stört
@@ -86,7 +86,7 @@ function renderNav() {
   }[state.screen] || state.screen;
   nav.innerHTML = NAV.map(n => `
     <button class="nav-btn ${active === n.screen ? 'active' : ''}" onclick="go('${n.screen}')" aria-label="${n.label}">
-      <span class="nav-icon">${n.icon}</span><span class="nav-label">${n.label}</span>
+      <span class="nav-icon">${icon(n.icon, 22)}</span><span class="nav-label">${n.label}</span>
     </button>`).join('');
 }
 
@@ -95,17 +95,17 @@ function renderHeader() {
   const chip = document.getElementById('streakChip');
   if (chip) {
     chip.hidden = !s || state.screen === 'auth';
-    if (s) chip.innerHTML = `🔥 ${currentStreak()} · ⚡ ${s.daily[todayStr()] || 0}`;
+    if (s) chip.innerHTML = `${icon('flame', 14)} ${currentStreak()} <span class="chip-sep"></span> ${s.daily[todayStr()] || 0} XP`;
   }
 }
 
-function backBtn(screen, params = {}, label = '← Zurück') {
-  return `<button class="icon-btn" onclick='go(${JSON.stringify(screen)}, ${esc(JSON.stringify(params))})'>${label}</button>`;
+function backBtn(screen, params = {}, label = 'Zurück') {
+  return `<button class="icon-btn" onclick='go(${JSON.stringify(screen)}, ${esc(JSON.stringify(params))})'>${icon('back', 16)} ${label}</button>`;
 }
 
 // ---------- Ladebildschirm ----------
 
-function renderLoading(label, sub = 'Das kann bis zu einer Minute dauern. Spiel solange eine Runde Snake!') {
+function renderLoading(label, sub = 'Dauert bis zu einer Minute. Solange: Snake.') {
   state.screen = 'loading';
   renderNav();
   document.getElementById('app').innerHTML = `

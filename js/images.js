@@ -147,7 +147,7 @@ function openImage(id, extra = '') {
     ${extra}
     <div class="row-2" style="margin-top:12px;">
       <button class="btn btn-outline" onclick="closeModal()">Schließen</button>
-      <button class="btn btn-primary" onclick="askAboutImage('${esc(id)}')">💬 Dazu fragen</button>
+      <button class="btn btn-primary" onclick="askAboutImage('${esc(id)}')">Dazu fragen</button>
     </div>`);
   hydrateImages(document.getElementById('modalContainer'));
 }

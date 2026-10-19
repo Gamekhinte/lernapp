@@ -1,10 +1,10 @@
 // Offline-Cache: App-Dateien zuerst aus dem Cache, Updates im Hintergrund.
-const CACHE = 'lernapp-v2';
+const CACHE = 'lernapp-v3';
 const FILES = [
-  './', './index.html', './manifest.json', './css/style.css?v=2',
-  './js/data.js?v=2', './js/store.js?v=2', './js/ui.js?v=2', './js/images.js?v=2', './js/ai.js?v=2', './js/gamify.js?v=2',
-  './js/math.js?v=2', './js/decks.js?v=2', './js/mathview.js?v=2', './js/exam.js?v=2',
-  './js/tutor.js?v=2', './js/plan.js?v=2', './js/onenote.js?v=2', './js/app.js?v=2',
+  './', './index.html', './manifest.json', './css/style.css?v=3',
+  './js/data.js?v=3', './js/store.js?v=3', './js/ui.js?v=3', './js/icons.js?v=3', './js/images.js?v=3', './js/ai.js?v=3', './js/gamify.js?v=3',
+  './js/math.js?v=3', './js/decks.js?v=3', './js/mathview.js?v=3', './js/exam.js?v=3',
+  './js/tutor.js?v=3', './js/plan.js?v=3', './js/onenote.js?v=3', './js/app.js?v=3',
   './icons/icon-192.png', './icons/apple-touch-icon.png'
 ];
 

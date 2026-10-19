@@ -206,7 +206,7 @@ async function scanOneNote(source, { interactive = false } = {}) {
   } finally {
     state.onenoteScanning = false;
   }
-  if (added) toast(`📓 ${added} neue Seite${added > 1 ? 'n' : ''} aus OneNote`);
+  if (added) toast(`${added} neue Seite${added > 1 ? 'n' : ''} aus OneNote`);
   return added;
 }
 
@@ -277,10 +277,10 @@ function newOneNoteItems(subjectId = null) {
 function oneNoteBanner(subjectId = null) {
   const n = newOneNoteItems(subjectId).length;
   if (state.onenoteNeedsPermission && !subjectId) {
-    return `<div class="one-banner" onclick="recheckOneNote(true)"><span>📓</span><div><b>OneNote auf neue Seiten prüfen</b><small>Tippen, um den Ordner wieder freizugeben</small></div><span class="chev">›</span></div>`;
+    return `<div class="one-banner" onclick="recheckOneNote(true)"><span>${icon('note', 24)}</span><div><b>OneNote prüfen</b><small>Ordner wieder freigeben</small></div><span class="chev">›</span></div>`;
   }
   if (!n) return '';
-  return `<div class="one-banner" onclick="go('onenote', ${subjectId ? `{subject:'${subjectId}'}` : '{}'})"><span>📓</span><div><b>${n} neue Seite${n > 1 ? 'n' : ''} aus OneNote</b><small>Aussuchen und Lernkarten oder Aufgaben daraus machen</small></div><span class="chev">›</span></div>`;
+  return `<div class="one-banner" onclick="go('onenote', ${subjectId ? `{subject:'${subjectId}'}` : '{}'})"><span>${icon('note', 24)}</span><div><b>${n} neue Seite${n > 1 ? 'n' : ''} aus OneNote</b><small>Aussuchen, was du lernen willst</small></div><span class="chev">›</span></div>`;
 }
 
 function renderOneNote(container) {
@@ -296,15 +296,15 @@ function renderOneNote(container) {
 
   const status = canPickFolder
     ? (state.onenoteHandle
-      ? `<p class="note" style="margin-top:0;">Verbunden mit <b>${esc(on.folderName || state.onenoteHandle.name)}</b> · zuletzt geprüft ${esc(lastScan)}. Die App schaut bei jedem Öffnen und alle 30 Minuten nach neuen Seiten.</p>
-         <div class="row-2"><button class="btn btn-primary" onclick="recheckOneNote(true)">🔄 Jetzt prüfen</button><button class="btn btn-outline" onclick="connectOneNote()">📁 Anderer Ordner</button></div>`
-      : `<p class="note" style="margin-top:0;">Verbinde einmal den Ordner mit deinen OneNote-Sicherungen. Danach holt sich die App neue Arbeitsblätter und Hefteinträge automatisch.</p>
-         <button class="btn btn-primary" onclick="connectOneNote()">📁 OneNote-Ordner verbinden</button>`)
+      ? `<p class="note" style="margin-top:0;">Verbunden mit <b>${esc(on.folderName || state.onenoteHandle.name)}</b> · zuletzt geprüft ${esc(lastScan)}. Wird bei jedem Öffnen und alle 30 Minuten geprüft.</p>
+         <div class="row-2"><button class="btn btn-primary" onclick="recheckOneNote(true)">${icon('refresh', 16)} Jetzt prüfen</button><button class="btn btn-outline" onclick="connectOneNote()">${icon('folder', 16)} Anderer Ordner</button></div>`
+      : `<p class="note" style="margin-top:0;">Einmal den Ordner mit den OneNote-Sicherungen verbinden. Danach kommen neue Arbeitsblätter und Hefteinträge automatisch.</p>
+         <button class="btn btn-primary" onclick="connectOneNote()">${icon('folder', 16)} Ordner verbinden</button>`)
     : `<p class="note" style="margin-top:0;">Zuletzt am PC geprüft: ${esc(lastScan)}. OneNote wird am PC eingelesen (Chrome oder Edge). Neue Seiten erscheinen dann hier und du kannst sie auch am Handy verarbeiten.</p>
-       <button class="btn btn-outline btn-sm" onclick="document.getElementById('oneFolderInput').click()">📁 Ordner einmalig auswählen</button>`;
+       <button class="btn btn-outline btn-sm" onclick="document.getElementById('oneFolderInput').click()">${icon('folder', 15)} Ordner einmalig auswählen</button>`;
 
   const notebooks = Object.entries(on.notebooks).sort();
-  const subjOptions = cur => `<option value="">Nicht importieren</option>` + getSubjects().map(s => `<option value="${s.id}" ${cur === s.id ? 'selected' : ''}>${s.emoji} ${esc(s.name)}</option>`).join('');
+  const subjOptions = cur => `<option value="">Nicht importieren</option>` + getSubjects().map(s => `<option value="${s.id}" ${cur === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('');
 
   const groupHtml = Object.entries(groups).map(([key, list]) => {
     const first = list[0];
@@ -312,7 +312,7 @@ function renderOneNote(container) {
     return `
       <div class="card one-group">
         <div class="one-group-head">
-          <div><b>${subj.emoji} ${esc(first.section)}</b><small>${esc(subj.name)} · ${esc(first.date ? dateLabel(first.date) : '')} · ${list.length} Bild${list.length > 1 ? 'er' : ''}</small></div>
+          <div class="one-title">${subjectBadge(subj, 'sm')}<b>${esc(first.section)}</b><small>${esc(subj.name)} · ${esc(first.date ? dateLabel(first.date) : '')} · ${list.length} Bild${list.length > 1 ? 'er' : ''}</small></div>
           <div class="sel-btns">
             <button class="btn btn-outline btn-xs" onclick="selectOneGroup(${jsArg(key)})">Alle</button>
             <button class="btn btn-outline btn-xs" onclick="ignoreOneGroup(${jsArg(key)})">Ignorieren</button>
@@ -322,8 +322,8 @@ function renderOneNote(container) {
           ${list.map(it => `
             <div class="one-item ${p.sel.includes(it.id) ? 'picked' : ''}" onclick="toggleOneItem('${it.id}')">
               ${imgTag(it.imgId, 'thumb', false)}
-              <span class="one-check">${p.sel.includes(it.id) ? '✓' : ''}</span>
-              <button class="one-zoom" onclick="event.stopPropagation(); openImage('${it.imgId}')">🔍</button>
+              <span class="one-check">${p.sel.includes(it.id) ? icon('check', 14) : ''}</span>
+              <button class="one-zoom" onclick="event.stopPropagation(); openImage('${it.imgId}')" aria-label="Vergrößern">${icon('search', 14)}</button>
             </div>`).join('')}
         </div>
       </div>`;
@@ -332,7 +332,7 @@ function renderOneNote(container) {
   const done = on.items.filter(it => it.status === 'done').length;
   container.innerHTML = `
     <input type="file" id="oneFolderInput" webkitdirectory multiple hidden onchange="scanFromInput(event)">
-    <div class="setup-header">${backBtn('home')}<h3>📓 OneNote</h3><span></span></div>
+    <div class="setup-header">${backBtn('home')}<h3>OneNote</h3><span></span></div>
     <div class="card">${status}
       <details class="solution" style="margin-bottom:0;">
         <summary>So richtest du es ein</summary>
@@ -344,21 +344,21 @@ function renderOneNote(container) {
         </ol>
       </details>
     </div>
-    ${p.result ? `<div class="card one-result"><h3 class="card-title">✅ Fertig</h3>${p.result.map(r => `<div class="task-row"><div class="task-text"><span>${esc(r.name)}</span><small>${esc(getSubject(r.subject).name)} · ${r.count} ${r.kind === 'set' ? 'Aufgaben' : 'Karten'}</small></div><button class="btn btn-primary btn-xs" onclick="${r.kind === 'set' ? `startMathRun({ setId: '${r.id}' })` : `go('deckSetup', {deckId:'${r.id}'})`}">Lernen</button></div>`).join('')}</div>` : ''}
-    ${subjectsWithItems.length > 1 ? `<div class="chip-row"><button class="chip ${!filter ? 'active' : ''}" onclick="go('onenote', {})">Alle</button>${subjectsWithItems.map(id => `<button class="chip ${filter === id ? 'active' : ''}" onclick="go('onenote', {subject:'${id}'})">${getSubject(id).emoji} ${esc(getSubject(id).name)}</button>`).join('')}</div>` : ''}
+    ${p.result ? `<div class="card one-result"><h3 class="card-title">Fertig</h3>${p.result.map(r => `<div class="task-row"><div class="task-text"><span>${esc(r.name)}</span><small>${esc(getSubject(r.subject).name)} · ${r.count} ${r.kind === 'set' ? 'Aufgaben' : 'Karten'}</small></div><button class="btn btn-primary btn-xs" onclick="${r.kind === 'set' ? `startMathRun({ setId: '${r.id}' })` : `go('deckSetup', {deckId:'${r.id}'})`}">Lernen</button></div>`).join('')}</div>` : ''}
+    ${subjectsWithItems.length > 1 ? `<div class="chip-row"><button class="chip ${!filter ? 'active' : ''}" onclick="go('onenote', {})">Alle</button>${subjectsWithItems.map(id => `<button class="chip ${filter === id ? 'active' : ''}" onclick="go('onenote', {subject:'${id}'})">${esc(getSubject(id).name)}</button>`).join('')}</div>` : ''}
     <h3 class="group-title">Neu aus OneNote (${items.length})</h3>
     ${groupHtml || `<div class="empty">${on.lastScan ? 'Alles erledigt. Neue Arbeitsblätter tauchen hier auf, sobald OneNote sie sichert.' : 'Noch nichts eingelesen.'}</div>`}
     ${done ? `<p class="note center">${done} Bilder schon verarbeitet.</p>` : ''}
     ${notebooks.length ? `
       <details class="card one-settings">
-        <summary class="card-title" style="margin:0;">⚙️ Notizbücher zuordnen</summary>
+        <summary class="card-title" style="margin:0;">Notizbücher zuordnen</summary>
         ${notebooks.map(([name, nb]) => `
           <div class="nb-row"><span>${esc(name)}</span>
             <select onchange="setNotebookSubject(${jsArg(name)}, this.value)">${subjOptions(nb.include ? nb.subject : '')}</select>
           </div>`).join('')}
         <p class="note">Nach einer Änderung einmal "Jetzt prüfen" tippen.</p>
       </details>` : ''}
-    ${p.sel.length ? `<div class="one-action"><button class="btn btn-primary" onclick="processOneNote()">✨ Aus ${p.sel.length} Bild${p.sel.length > 1 ? 'ern' : ''} lernen</button></div>` : ''}
+    ${p.sel.length ? `<div class="one-action"><button class="btn btn-primary" onclick="processOneNote()">${p.sel.length} Bild${p.sel.length > 1 ? 'er' : ''} verarbeiten</button></div>` : ''}
   `;
 }
 
@@ -406,7 +406,7 @@ async function processOneNote() {
   const result = [];
   let step = 0, errors = 0;
   const totalCalls = Object.values(groups).reduce((n, g) => n + Math.ceil(g.length / 3), 0);
-  renderLoading('Die KI liest deine OneNote-Seiten', 'Pro Bild ein paar Sekunden. Spiel solange Snake!');
+  renderLoading('OneNote-Seiten werden gelesen', 'Ein paar Sekunden pro Bild.');
 
   for (const [key, list] of Object.entries(groups)) {
     const subject = getSubject(list[0].subject);

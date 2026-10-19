@@ -7,17 +7,17 @@ const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBL
 
 // kind: 'sprache' = Vokabeln, 'mathe' = Aufgaben-Generatoren, 'sach' = Lernkarten und Quiz
 const BASE_SUBJECTS = [
-  { id: 'englisch',     name: 'Englisch',     emoji: '💂', kind: 'sprache', lang: 'en', color: '#2b7aaf' },
-  { id: 'franzoesisch', name: 'Französisch',  emoji: '🥐', kind: 'sprache', lang: 'fr', color: '#7056b8' },
-  { id: 'mathe',        name: 'Mathe',        emoji: '📐', kind: 'mathe',               color: '#c6573d' },
-  { id: 'geschichte',   name: 'Geschichte',   emoji: '🏛️', kind: 'sach',                color: '#b7791f' },
-  { id: 'erdkunde',     name: 'Erdkunde',     emoji: '🌍', kind: 'sach',                color: '#218c62' },
-  { id: 'biologie',     name: 'Biologie',     emoji: '🧬', kind: 'sach',                color: '#2a6f4e' },
-  { id: 'deutsch',      name: 'Deutsch',      emoji: '📖', kind: 'sach',                color: '#a83232' },
-  { id: 'chemie',       name: 'Chemie',       emoji: '⚗️', kind: 'sach',                color: '#176b87' },
-  { id: 'physik',       name: 'Physik',       emoji: '🧲', kind: 'sach',                color: '#4a4a4a' },
-  { id: 'powi',         name: 'PoWi',         emoji: '⚖️', kind: 'sach',                color: '#c43d65' },
-  { id: 'religion',     name: 'Religion',     emoji: '🕊️', kind: 'sach',                color: '#8a6d3b' }
+  { id: 'englisch',     name: 'Englisch',     abbr: 'E', kind: 'sprache', lang: 'en', color: '#2b7aaf' },
+  { id: 'franzoesisch', name: 'Französisch',  abbr: 'F', kind: 'sprache', lang: 'fr', color: '#7056b8' },
+  { id: 'mathe',        name: 'Mathe',        abbr: 'M', kind: 'mathe',               color: '#c6573d' },
+  { id: 'geschichte',   name: 'Geschichte',   abbr: 'G', kind: 'sach',                color: '#b7791f' },
+  { id: 'erdkunde',     name: 'Erdkunde',     abbr: 'Ek', kind: 'sach',                color: '#218c62' },
+  { id: 'biologie',     name: 'Biologie',     abbr: 'Bio', kind: 'sach',                color: '#2a6f4e' },
+  { id: 'deutsch',      name: 'Deutsch',      abbr: 'D', kind: 'sach',                color: '#a83232' },
+  { id: 'chemie',       name: 'Chemie',       abbr: 'Ch', kind: 'sach',                color: '#176b87' },
+  { id: 'physik',       name: 'Physik',       abbr: 'Ph', kind: 'sach',                color: '#4a4a4a' },
+  { id: 'powi',         name: 'PoWi',         abbr: 'PW', kind: 'sach',                color: '#c43d65' },
+  { id: 'religion',     name: 'Religion',     abbr: 'Rel', kind: 'sach',                color: '#8a6d3b' }
 ];
 
 const THEMES = {

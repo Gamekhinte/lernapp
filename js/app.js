@@ -39,9 +39,8 @@ function render() {
 
 // ---------- Startseite ----------
 
-function greeting() {
-  const h = new Date().getHours();
-  return h < 11 ? 'Guten Morgen' : h < 17 ? 'Hey' : h < 22 ? 'Guten Abend' : 'Noch wach?';
+function todayHeading() {
+  return new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
 function renderHome(container) {
@@ -57,39 +56,39 @@ function renderHome(container) {
 
   const onboarding = isNew ? `
     <div class="card">
-      <h3 class="card-title">👋 So legst du los</h3>
-      <div class="onb ${hasAiKey() ? 'done' : ''}" onclick="setApiKey()"><span>1</span><div><b>KI einrichten</b><small>Kostenlos mit Google Gemini. Für Foto-Scan und Nachhilfe.</small></div></div>
-      <div class="onb" onclick="go('subjects')"><span>2</span><div><b>Stoff reinholen</b><small>Vokabelliste oder Buchseite fotografieren. Mathe-Aufgaben sind schon drin.</small></div></div>
-      <div class="onb" onclick="go('examEdit', {})"><span>3</span><div><b>Nächste Arbeit eintragen</b><small>Die App macht dir einen Lernplan bis dahin.</small></div></div>
+      <h3 class="card-title">Erste Schritte</h3>
+      <div class="onb ${hasAiKey() ? 'done' : ''}" onclick="setApiKey()"><span>1</span><div><b>Key eintragen</b><small>Gemini-Key, kostenlos. Braucht man für Fotos und Fragen.</small></div></div>
+      <div class="onb" onclick="go('subjects')"><span>2</span><div><b>Stoff reinholen</b><small>Vokabelliste oder Buchseite fotografieren. Mathe ist schon drin.</small></div></div>
+      <div class="onb" onclick="go('examEdit', {})"><span>3</span><div><b>Nächste Arbeit eintragen</b><small>Dann gibt es einen Plan bis dahin.</small></div></div>
     </div>` : '';
 
   container.innerHTML = `
     <div class="hello">
-      <h2>${greeting()}! ${learnedToday ? '💪' : '👋'}</h2>
-      <p class="note">${learnedToday ? 'Du warst heute schon fleißig.' : streak ? `Lern heute, damit dein ${streak}-Tage-Streak hält.` : 'Schon 10 Minuten am Tag machen einen Unterschied.'}</p>
+      <h2>${esc(todayHeading())}</h2>
+      ${!learnedToday && streak ? `<p class="note">Heute noch nichts gelernt. Streak: ${streak} ${streak === 1 ? 'Tag' : 'Tage'}.</p>` : ''}
     </div>
     <div class="stat-row">
-      <div class="stat-tile"><span class="big">🔥 ${streak}</span><small>Tage Streak</small></div>
-      <div class="stat-tile" onclick="go('profile')"><span class="big">⭐ ${lvl.level}</span><small>${esc(lvl.title)}</small></div>
-      <div class="stat-tile"><span class="big">⚡ ${s.xp}</span><small>XP gesamt</small></div>
+      <div class="stat-tile"><span class="big">${icon('flame', 17)} ${streak}</span><small>Streak</small></div>
+      <div class="stat-tile" onclick="go('profile')"><span class="big">Lv ${lvl.level}</span><small>${esc(lvl.title)}</small></div>
+      <div class="stat-tile"><span class="big">${s.xp}</span><small>XP gesamt</small></div>
     </div>
     ${xpBar()}
     ${oneNoteBanner()}
     ${onboarding}
     ${exams.slice(0, 2).map(examBanner).join('')}
-    ${tasks.length ? `<div class="card"><h3 class="card-title">✅ Heute dran</h3>${tasks.map(({ exam, task }) => taskRow(exam, task)).join('')}</div>` : ''}
-    ${due ? `<button class="btn btn-primary big-btn" onclick="startDueReview()">🔁 ${due} Karte${due > 1 ? 'n' : ''} wiederholen</button>` : ''}
-    <h3 class="group-title">Schnell lernen</h3>
+    ${tasks.length ? `<div class="card"><h3 class="card-title">Heute dran</h3>${tasks.map(({ exam, task }) => taskRow(exam, task)).join('')}</div>` : ''}
+    ${due ? `<button class="btn btn-primary big-btn" onclick="startDueReview()">${icon('repeat')} ${due} Karte${due > 1 ? 'n' : ''} wiederholen</button>` : ''}
+    <h3 class="group-title">Fächer</h3>
     <div class="tile-grid">
       ${getSubjects().map(sub => `
         <button class="subject-tile" style="--subject:${sub.color}" onclick="go('subject', {id:'${sub.id}'})">
-          <span class="tile-emoji">${sub.emoji}</span><span>${esc(sub.name)}</span>
+          ${subjectBadge(sub, 'lg')}<span>${esc(sub.name)}</span>
           ${sub.kind !== 'mathe' && allDueCards(sub.id).length ? `<i class="tile-badge">${allDueCards(sub.id).length}</i>` : ''}
         </button>`).join('')}
     </div>
     <div class="quick-grid two" style="margin-top:14px;">
-      <button class="btn btn-outline" onclick="go('examSetup', {})">📝 Probearbeit</button>
-      <button class="btn btn-outline" onclick="openTutor()">💬 Nachhilfe</button>
+      <button class="btn btn-outline" onclick="go('examSetup', {})">${icon('pen')} Probearbeit</button>
+      <button class="btn btn-outline" onclick="openTutor()">${icon('chat')} Frage stellen</button>
     </div>
   `;
 }
@@ -107,16 +106,16 @@ function renderProfile(container) {
   const maxDay = Math.max(s.dailyGoal, ...week.map(d => s.daily[d] || 0));
 
   container.innerHTML = `
-    <h2 class="page-title">⭐ Profil</h2>
+    <h2 class="page-title">Profil</h2>
     <div class="card center">
       <div class="level-badge">${lvl.level}</div>
       <h3 class="mono">${esc(lvl.title)}</h3>
       <div class="bar" style="margin:12px 0 6px;"><div style="width:${lvl.progress}%"></div></div>
       <p class="note">Noch ${lvl.toNext} XP bis Level ${lvl.level + 1}</p>
       <div class="stat-grid">
-        <div><strong>🔥 ${currentStreak()}</strong><small>Streak</small></div>
-        <div><strong>🏅 ${s.best || 0}</strong><small>Bester Streak</small></div>
-        <div><strong>⚡ ${s.xp}</strong><small>XP</small></div>
+        <div><strong>${currentStreak()}</strong><small>Streak</small></div>
+        <div><strong>${s.best || 0}</strong><small>Bester Streak</small></div>
+        <div><strong>${s.xp}</strong><small>XP</small></div>
       </div>
     </div>
 
@@ -133,32 +132,32 @@ function renderProfile(container) {
         <div><strong>${hist.length}</strong><small>Lernrunden</small></div>
         <div><strong>${avg}</strong><small>Ø Probearbeit</small></div>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="go('history')">📈 Lernhistorie ansehen</button>
+      <button class="btn btn-outline btn-sm" onclick="go('history')">${icon('chart', 15)} Verlauf</button>
     </div>
 
     <div class="card">
       <h3 class="card-title">Abzeichen (${s.badges.length}/${BADGES.length})</h3>
       <div class="badge-grid">
-        ${BADGES.map(b => `<div class="badge-item ${s.badges.includes(b.id) ? 'on' : ''}" title="${esc(b.desc)}"><span>${b.icon}</span><small>${esc(b.name)}</small></div>`).join('')}
+        ${BADGES.map(b => `<div class="badge-item ${s.badges.includes(b.id) ? 'on' : ''}" title="${esc(b.desc)}"><span>${icon(b.icon, 22)}</span><small>${esc(b.name)}</small></div>`).join('')}
       </div>
     </div>
 
     <div class="card">
-      <h3 class="card-title">📓 OneNote</h3>
-      <p class="note" style="margin:0 0 10px;">${state.data.onenote.lastScan ? `Zuletzt geprüft: ${new Date(state.data.onenote.lastScan).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })} · ${newOneNoteItems().length} neue Seiten` : 'Hol dir Arbeitsblätter und Hefteinträge automatisch aus deinen OneNote-Notizbüchern.'}</p>
-      <button class="btn btn-outline" onclick="go('onenote')">📓 OneNote öffnen</button>
+      <h3 class="card-title">OneNote</h3>
+      <p class="note" style="margin:0 0 10px;">${state.data.onenote.lastScan ? `Zuletzt geprüft: ${new Date(state.data.onenote.lastScan).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })} · ${newOneNoteItems().length} neue Seiten` : 'Arbeitsblätter und Hefteinträge aus OneNote übernehmen.'}</p>
+      <button class="btn btn-outline" onclick="go('onenote')">${icon('note')} OneNote</button>
       ${state.storageMissing ? '<p class="note" style="color:var(--red)">Bilder werden noch nicht in die Cloud geladen: Der Bilder-Speicher in Supabase fehlt (Datei supabase-bilder.sql).</p>' : ''}
     </div>
 
     <div class="card">
-      <h3 class="card-title">⚙️ Einstellungen</h3>
+      <h3 class="card-title">Einstellungen</h3>
       <label class="field-label">Tagesziel</label>
       <select onchange="state.data.stats.dailyGoal=Number(this.value); saveData(); render();">
         ${[[50, 'Locker (50 XP, ca. 5 Min)'], [100, 'Normal (100 XP, ca. 10 Min)'], [200, 'Ehrgeizig (200 XP, ca. 20 Min)'], [300, 'Hardcore (300 XP)']].map(([v, l]) => `<option value="${v}" ${s.dailyGoal === v ? 'selected' : ''}>${l}</option>`).join('')}
       </select>
 
-      <label class="field-label" style="margin-top:16px;">KI</label>
-      <button class="btn btn-outline" onclick="setApiKey()">🔑 ${hasAiKey() ? PROVIDER_NAMES[state.provider] + ' ✓ (ändern)' : 'KI einrichten'}</button>
+      <label class="field-label" style="margin-top:16px;">KI-Key</label>
+      <button class="btn btn-outline" onclick="setApiKey()">${icon('key')} ${hasAiKey() ? PROVIDER_NAMES[state.provider] + ' (ändern)' : 'Key eintragen'}</button>
 
       <label class="field-label" style="margin-top:16px;">Design</label>
       <div class="theme-grid">
@@ -167,16 +166,16 @@ function renderProfile(container) {
 
       <label class="field-label" style="margin-top:16px;">Konto</label>
       ${state.authUser
-        ? `<p class="note" style="margin:0 0 8px;">Angemeldet als ${esc(state.authUser.email)}. Deine Daten werden synchronisiert.</p><button class="btn btn-outline" onclick="logout()">Abmelden</button>`
+        ? `<p class="note" style="margin:0 0 8px;">Angemeldet als ${esc(state.authUser.email)}.</p><button class="btn btn-outline" onclick="logout()">Abmelden</button>`
         : `<p class="note" style="margin:0 0 8px;">Ohne Konto bleiben deine Daten nur auf diesem Gerät.</p><button class="btn btn-outline" onclick="go('auth')">Anmelden / Konto erstellen</button>`}
 
       <label class="field-label" style="margin-top:16px;">Backup</label>
       <div class="row-2">
-        <button class="btn btn-outline btn-sm" onclick="exportBackup()">⬇️ Sichern</button>
+        <button class="btn btn-outline btn-sm" onclick="exportBackup()">${icon('download', 15)} Sichern</button>
         <input type="file" accept="application/json,.json" id="backupInput" hidden onchange="importBackup(event)">
-        <button class="btn btn-outline btn-sm" onclick="document.getElementById('backupInput').click()">⬆️ Laden</button>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('backupInput').click()">${icon('upload', 15)} Laden</button>
       </div>
-      <p class="note">Als App installieren: im Browser-Menü "Zum Startbildschirm hinzufügen".</p>
+      <p class="note">Installieren: im Browser-Menü "Zum Startbildschirm hinzufügen".</p>
       <p class="note center" style="margin-top:14px;">made by Liam</p>
     </div>
   `;
@@ -184,17 +183,17 @@ function renderProfile(container) {
 
 function renderHistory(container) {
   const sessions = state.data.learningHistory;
-  const kinds = { karten: '🎴', quiz: '🔘', mathe: '📐', probearbeit: '📝' };
+  const kinds = { karten: 'Karten', quiz: 'Quiz', mathe: 'Mathe', probearbeit: 'Probearbeit' };
   container.innerHTML = `
     <div class="card">
-      <div class="setup-header">${backBtn('profile')}<h3>📈 Lernhistorie</h3><span></span></div>
+      <div class="setup-header">${backBtn('profile')}<h3>Verlauf</h3><span></span></div>
       ${sessions.length ? sessions.map(h => {
         const date = new Date(h.finishedAt).toLocaleDateString('de-DE');
         const mins = Math.max(1, Math.round(h.durationSeconds / 60));
-        const sub = h.subject ? getSubject(h.subject).emoji + ' ' : '';
+        const sub = h.subject ? getSubject(h.subject).name + ' · ' : '';
         return `<div class="history-item">
-          <strong>${kinds[h.kind] || '🎴'} ${sub}${esc(h.deckName)}</strong>
-          <p class="mono-muted">${date} · ${mins} min · ✓ ${h.correct} · ✕ ${h.wrong}${h.grade ? ' · Note ' + h.grade : ''}</p>
+          <strong>${esc(h.deckName)}</strong>
+          <p class="mono-muted">${esc(sub)}${kinds[h.kind] || 'Karten'} · ${date} · ${mins} min · ${h.correct} richtig, ${h.wrong} falsch${h.grade ? ' · Note ' + h.grade : ''}</p>
         </div>`;
       }).join('') : '<div class="empty">Noch keine Lernrunden.</div>'}
     </div>`;
@@ -206,13 +205,13 @@ function renderAuth(container) {
   const register = state.authMode === 'register';
   container.innerHTML = `
     <div class="auth-hero">
-      <div class="auth-logo">🎓</div>
+      <img class="auth-logo" src="icons/icon-192.png" alt="">
       <h2>Liams Lernapp</h2>
-      <p class="note">Vokabeln, Mathe, Geschichte, Erdkunde und Bio. Mit Probearbeiten, Lernplan und KI-Nachhilfe.</p>
+      <p class="note">Vokabeln, Mathe und alle anderen Fächer. Mit Probearbeiten und Lernplan.</p>
     </div>
     <div class="card" style="max-width:460px; margin:0 auto;">
       <h3 class="card-title">${register ? 'Konto erstellen' : 'Anmelden'}</h3>
-      <p class="note" style="margin:0 0 14px;">${register ? 'Dann sind deine Daten auf allen Geräten gleich.' : 'Mit deinem Konto vom Voc-Trainer kannst du dich direkt anmelden. Deine Vokabeln sind dann schon da.'}</p>
+      <p class="note" style="margin:0 0 14px;">${register ? 'Damit sind die Daten auf allen Geräten gleich.' : 'Das Konto vom Voc-Trainer funktioniert hier auch, die Vokabeln sind dann schon da.'}</p>
       <label class="field-label">E-Mail</label>
       <input id="authEmail" type="email" autocomplete="email" placeholder="name@email.de">
       <label class="field-label" style="margin-top:10px;">Passwort</label>

@@ -55,15 +55,14 @@ function renderTutor(container) {
   ensureTutor(state.params.subject || state.tutor?.subject || 'mathe');
   const t = state.tutor;
   const subject = getSubject(t.subject);
-  const chips = getSubjects().map(s => `<button class="chip ${s.id === t.subject ? 'active' : ''}" onclick="switchTutor('${s.id}')">${s.emoji} ${esc(s.name)}</button>`).join('');
+  const chips = getSubjects().map(s => `<button class="chip ${s.id === t.subject ? 'active' : ''}" onclick="switchTutor('${s.id}')">${esc(s.name)}</button>`).join('');
 
   if (!hasAiKey()) {
     container.innerHTML = `
-      <h2 class="page-title">💬 Nachhilfe</h2>
+      <h2 class="page-title">Fragen</h2>
       <div class="card center">
-        <div style="font-size:42px;">🤖</div>
-        <p style="margin:10px 0 16px;">Für die Nachhilfe brauchst du einen KI-Key. Mit Google Gemini ist das kostenlos und dauert zwei Minuten.</p>
-        <button class="btn btn-primary" onclick="setApiKey()">🔑 KI einrichten</button>
+        <p style="margin:4px 0 16px;">Dafür braucht die App einen Key. Ein Gemini-Key ist kostenlos und in zwei Minuten erstellt.</p>
+        <button class="btn btn-primary" onclick="setApiKey()">${icon('key')} Key eintragen</button>
       </div>`;
     return;
   }
@@ -71,19 +70,19 @@ function renderTutor(container) {
   const ideas = TUTOR_IDEAS[t.subject] || ['Erklär mir das aktuelle Thema einfach', 'Mach mir 5 Testfragen', 'Wie lerne ich am besten für die Arbeit?'];
   const msgs = t.messages.length ? t.messages.map(m => `
     <div class="msg ${m.role}">
-      ${m.image ? `<img src="data:image/jpeg;base64,${m.image}" alt="Foto">` : m.hadImage ? '<div class="note">📷 Foto</div>' : ''}
+      ${m.image ? `<img src="data:image/jpeg;base64,${m.image}" alt="Foto">` : m.hadImage ? '<div class="note">[Foto]</div>' : ''}
       ${m.role === 'assistant' ? mdToHtml(m.text) : `<p>${esc(m.text).replace(/\n/g, '<br>')}</p>`}
     </div>`).join('') : `
     <div class="tutor-empty">
-      <div style="font-size:38px;">${subject.emoji}</div>
-      <p>Frag mich alles zu ${esc(subject.name)}. Du kannst auch ein Foto von einer Aufgabe schicken.</p>
+      ${subjectBadge(subject, 'lg')}
+      <p>Fragen zu ${esc(subject.name)}, gern auch mit Foto von der Aufgabe.</p>
       <div class="idea-list">${ideas.map(i => `<button class="idea" onclick='sendTutor(${jsArg(i)})'>${esc(i)}</button>`).join('')}</div>
     </div>`;
 
   container.innerHTML = `
     <div class="tutor-head">
-      ${t.returnTo ? `<button class="icon-btn" onclick="tutorBack()">← Zurück</button>` : `<h2 class="page-title" style="margin:0;">💬 Nachhilfe</h2>`}
-      ${t.messages.length ? `<button class="icon-btn" onclick="clearTutor()" title="Neuer Chat">🧹 Neu</button>` : ''}
+      ${t.returnTo ? `<button class="icon-btn" onclick="tutorBack()">${icon('back', 16)} Zurück</button>` : `<h2 class="page-title" style="margin:0;">Fragen</h2>`}
+      ${t.messages.length ? `<button class="icon-btn" onclick="clearTutor()" title="Neuer Chat">${icon('plus', 16)} Neu</button>` : ''}
     </div>
     <div class="chip-row">${chips}</div>
     <div class="chat" id="chat">
@@ -94,9 +93,9 @@ function renderTutor(container) {
       ${t.image ? `<div class="attach-preview"><img src="data:image/jpeg;base64,${t.image}" alt=""><button onclick="state.tutor.image=null; render();">✕</button></div>` : ''}
       <div class="chat-row">
         <input type="file" accept="image/*" id="tutorPhoto" hidden onchange="attachTutorPhoto(event)">
-        <button class="icon-btn" onclick="document.getElementById('tutorPhoto').click()" title="Foto anhängen">📷</button>
-        <textarea id="tutorInput" rows="1" placeholder="Deine Frage …" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); sendTutor();}" oninput="this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,140)+'px'"></textarea>
-        <button class="btn btn-primary send-btn" ${t.busy ? 'disabled' : ''} onclick="sendTutor()">➤</button>
+        <button class="icon-btn" onclick="document.getElementById('tutorPhoto').click()" title="Foto anhängen">${icon('camera')}</button>
+        <textarea id="tutorInput" rows="1" placeholder="Frage eingeben" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); sendTutor();}" oninput="this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,140)+'px'"></textarea>
+        <button class="btn btn-primary send-btn" ${t.busy ? 'disabled' : ''} onclick="sendTutor()" aria-label="Senden">${icon('next', 20)}</button>
       </div>
     </div>`;
   const chat = document.getElementById('chat');
@@ -151,11 +150,11 @@ async function sendTutor(preset) {
       images: m.image && i >= arr.length - 4 ? [m.image] : []
     }));
     const reply = await aiCall({ system: tutorSystem(getSubject(t.subject)), messages: history });
-    t.messages.push({ role: 'assistant', text: reply || 'Hm, dazu habe ich gerade keine Antwort. Frag bitte nochmal anders.' });
+    t.messages.push({ role: 'assistant', text: reply || 'Keine Antwort bekommen. Bitte nochmal anders fragen.' });
     addXp(3);
     saveData();
   } catch (err) {
-    t.messages.push({ role: 'assistant', text: '⚠️ Das hat nicht geklappt: ' + err.message });
+    t.messages.push({ role: 'assistant', text: 'Fehler: ' + err.message });
   }
   t.busy = false;
   saveTutorChat();

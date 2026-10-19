@@ -30,8 +30,8 @@ function examBanner(exam) {
     <div class="exam-banner ${days <= 2 ? 'soon' : ''}" onclick="go('examPlan', {id:'${exam.id}'})">
       <div class="exam-count"><strong>${Math.max(0, days)}</strong><small>${days === 1 ? 'Tag' : 'Tage'}</small></div>
       <div style="flex:1;">
-        <b>${getSubject(exam.subject).emoji} ${esc(exam.title)}</b>
-        <p class="note" style="margin:2px 0 0;">${dateLabel(exam.date)} · ${open ? `${open} Aufgabe${open > 1 ? 'n' : ''} für heute` : 'Für heute alles erledigt ✓'}</p>
+        <b>${esc(exam.title)}</b>
+        <p class="note" style="margin:2px 0 0;">${dateLabel(exam.date)} · ${open ? `${open} Aufgabe${open > 1 ? 'n' : ''} für heute` : 'Heute erledigt'}</p>
       </div>
       <span class="chev">›</span>
     </div>`;
@@ -88,7 +88,7 @@ function renderPlan(container) {
   const todayTasks = upcoming.flatMap(e => (e.tasks || []).filter(t => t.date <= today && !t.done).map(t => ({ exam: e, task: t })));
 
   container.innerHTML = `
-    <h2 class="page-title">📅 Lernplan</h2>
+    <h2 class="page-title">Lernplan</h2>
     ${todayTasks.length ? `
       <div class="card">
         <h3 class="card-title">Heute dran</h3>
@@ -96,17 +96,16 @@ function renderPlan(container) {
       </div>` : ''}
     ${upcoming.map(examBanner).join('') || `
       <div class="card center">
-        <div style="font-size:40px;">🗓️</div>
-        <p style="margin:8px 0 4px;"><b>Wann ist deine nächste Arbeit?</b></p>
-        <p class="note">Trag sie ein und sag, was drankommt. Die App verteilt den Stoff auf die Tage bis dahin, mit Wiederholungen und Probearbeiten.</p>
+        <p style="margin:4px 0;"><b>Noch keine Arbeit eingetragen.</b></p>
+        <p class="note">Datum und Stoff eintragen. Der Stoff wird auf die Tage bis dahin verteilt, mit Wiederholungen und Probearbeiten.</p>
       </div>`}
     <button class="btn btn-primary" onclick="go('examEdit', {})">+ Arbeit eintragen</button>
     ${past.length ? `
       <h3 class="group-title" style="margin-top:24px;">Vergangene Arbeiten</h3>
       ${past.map(e => `
         <div class="deck-card" onclick="enterRealGrade('${e.id}')">
-          <div class="deck-info" style="flex:1;"><h3>${getSubject(e.subject).emoji} ${esc(e.title)}</h3><p>${dateLabel(e.date).toUpperCase()}${e.realGrade ? ' · NOTE ' + esc(e.realGrade) : ' · NOTE EINTRAGEN'}</p></div>
-          <span class="chev">✏️</span>
+          <div class="deck-info" style="flex:1;"><h3>${esc(e.title)}</h3><p>${dateLabel(e.date).toUpperCase()}${e.realGrade ? ' · NOTE ' + esc(e.realGrade) : ' · NOTE EINTRAGEN'}</p></div>
+          <span class="chev">${icon('edit', 16)}</span>
         </div>`).join('')}` : ''}
   `;
 }
@@ -114,10 +113,10 @@ function renderPlan(container) {
 function taskRow(exam, task) {
   return `
     <div class="task-row ${task.done ? 'done' : ''}">
-      <button class="check-btn ${task.done ? 'on' : ''}" onclick="togglePlanTask('${exam.id}', '${task.id}')" aria-label="Erledigt">${task.done ? '✓' : ''}</button>
+      <button class="check-btn ${task.done ? 'on' : ''}" onclick="togglePlanTask('${exam.id}', '${task.id}')" aria-label="Erledigt">${task.done ? icon('check', 16) : ''}</button>
       <div class="task-text">
         <span>${esc(task.label)}</span>
-        <small>${getSubject(exam.subject).emoji} ${esc(exam.title)}${task.date < todayStr() ? ' · überfällig' : ''}</small>
+        <small>${esc(exam.title)}${task.date < todayStr() ? ' · überfällig' : ''}</small>
       </div>
       ${task.done ? '' : `<button class="btn btn-primary btn-xs" onclick="startPlanTask('${exam.id}', '${task.id}')">Los</button>`}
     </div>`;
@@ -199,7 +198,7 @@ function renderExamEdit(container) {
     const groups = [...new Set(MATH_TOPICS.map(t => t.group))];
     sources = groups.map(g => `<p class="mini-label" style="margin-top:8px;">${esc(g)}</p>` + MATH_TOPICS.filter(t => t.group === g).map(t =>
       `<label class="check-row"><input type="checkbox" ${checked('topic:' + t.id)} onchange="toggleEditSrc('topic:${t.id}', this.checked)"> ${esc(t.name)}</label>`).join('')).join('')
-      + state.data.mathSets.map(s => `<label class="check-row"><input type="checkbox" ${checked('set:' + s.id)} onchange="toggleEditSrc('set:${s.id}', this.checked)"> 📷 ${esc(s.title)}</label>`).join('');
+      + state.data.mathSets.map(s => `<label class="check-row"><input type="checkbox" ${checked('set:' + s.id)} onchange="toggleEditSrc('set:${s.id}', this.checked)"> ${esc(s.title)}</label>`).join('');
   } else {
     const decks = state.data.decks.filter(d => d.subject === p.subject);
     sources = decks.map(d => `<label class="check-row"><input type="checkbox" ${checked('deck:' + d.id)} onchange="toggleEditSrc('deck:${d.id}', this.checked)"> ${esc(d.name)}</label>`).join('')
@@ -215,7 +214,7 @@ function renderExamEdit(container) {
       </div>
       <label class="field-label">Fach</label>
       <select onchange="state.params.subject=this.value; state.params.srcs=null; render();">
-        ${getSubjects().map(s => `<option value="${s.id}" ${s.id === p.subject ? 'selected' : ''}>${s.emoji} ${esc(s.name)}</option>`).join('')}
+        ${getSubjects().map(s => `<option value="${s.id}" ${s.id === p.subject ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}
       </select>
       <label class="field-label" style="margin-top:12px;">Name</label>
       <input type="text" value="${esc(p.title)}" placeholder="${esc(subject.name)}-Arbeit" oninput="state.params.title=this.value">
@@ -248,7 +247,7 @@ function saveExamPlan() {
     state.data.exams.push(exam);
   }
   saveData();
-  toast('Lernplan steht. Du schaffst das!');
+  toast('Lernplan erstellt.');
   go('examPlan', { id: exam.id });
 }
 
@@ -272,9 +271,9 @@ function renderExamPlan(container) {
 
   container.innerHTML = `
     <div class="subject-head" style="--subject:${subject.color}">
-      ${backBtn('plan', {}, '← Plan')}
-      <h2>${subject.emoji} ${esc(exam.title)}</h2>
-      <button class="icon-btn" onclick="go('examEdit', {id:'${exam.id}'})">✏️</button>
+      ${backBtn('plan', {}, 'Plan')}
+      <h2>${esc(exam.title)}</h2>
+      <button class="icon-btn" onclick="go('examEdit', {id:'${exam.id}'})" title="Bearbeiten">${icon('edit', 16)}</button>
     </div>
     <div class="card center">
       <div class="countdown-big">${Math.max(0, daysBetween(todayStr(), exam.date))}</div>
@@ -284,10 +283,10 @@ function renderExamPlan(container) {
       ${results.length ? `<p class="note">Letzte Probearbeiten: ${results.map(r => `<b>${esc(r.gradeLabel)}</b>`).join(' · ')}</p>` : ''}
     </div>
     <div class="quick-grid two">
-      <button class="btn btn-primary" onclick="go('examSetup', {subject:'${exam.subject}', examId:'${exam.id}'})">📝 Probearbeit</button>
-      <button class="btn btn-outline" onclick="openTutor('${exam.subject}')">💬 Nachhilfe</button>
+      <button class="btn btn-primary" onclick="go('examSetup', {subject:'${exam.subject}', examId:'${exam.id}'})">${icon('pen')} Probearbeit</button>
+      <button class="btn btn-outline" onclick="openTutor('${exam.subject}')">${icon('chat')} Frage stellen</button>
     </div>
-    ${!exam.sources.length ? `<div class="card"><p class="note" style="margin:0;">Für diese Arbeit ist noch kein Stoff ausgewählt. Tippe oben auf ✏️ und wähle Themen oder Karteien aus.</p></div>` : ''}
+    ${!exam.sources.length ? `<div class="card"><p class="note" style="margin:0;">Für diese Arbeit ist noch kein Stoff ausgewählt. Oben auf Bearbeiten tippen und Themen oder Karteien auswählen.</p></div>` : ''}
     ${Object.entries(byDate).map(([date, tasks]) => `
       <h3 class="group-title ${date === todayStr() ? 'today' : ''}">${dateLabel(date)}</h3>
       <div class="card tight">${tasks.map(t => taskRow(exam, t)).join('')}</div>`).join('')}

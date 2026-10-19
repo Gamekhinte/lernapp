@@ -67,7 +67,7 @@ function getSubjects() {
 }
 
 function getSubject(id) {
-  return getSubjects().find(s => s.id === id) || { id, name: 'Weitere', emoji: '📦', kind: 'sach', color: '#4a4a4a' };
+  return getSubjects().find(s => s.id === id) || { id, name: 'Weitere', abbr: '?', kind: 'sach', color: '#4a4a4a' };
 }
 
 function subjectForLang(lang) {
@@ -108,11 +108,10 @@ function normalizeData(raw) {
   state.data = data;
   data.decks.forEach(d => { if (!d.subject) d.subject = subjectForLang(d.sourceLang); });
   if (data.decks.some(d => d.subject === 'weitere-sprachen') && !data.customSubjects.some(s => s.id === 'weitere-sprachen')) {
-    data.customSubjects.push({ id: 'weitere-sprachen', name: 'Weitere Sprachen', emoji: '🗣️', kind: 'sprache', lang: 'es', color: '#176b87' });
+    data.customSubjects.push({ id: 'weitere-sprachen', name: 'Weitere Sprachen', abbr: 'Sp', kind: 'sprache', lang: 'es', color: '#176b87' });
   }
   data.folders.forEach(f => {
     if (!f.color) f.color = '#8b3a2b';
-    if (!f.emoji) f.emoji = '📁';
     if (!f.subject) {
       const deck = data.decks.find(d => d.folderId === f.id);
       f.subject = deck ? deck.subject : 'englisch';

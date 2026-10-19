@@ -46,13 +46,13 @@ function renderExamSetup(container) {
     <div class="card">
       <div class="setup-header">
         ${backBtn(p.examId ? 'examPlan' : 'subject', p.examId ? { id: p.examId } : { id: p.subject })}
-        <h3>📝 Probearbeit</h3>
+        <h3>Probearbeit</h3>
         <span></span>
       </div>
-      <p class="note" style="margin-bottom:14px;">Wie eine echte Arbeit: Aufgaben werden gemischt, die Lösungen siehst du erst nach dem Abgeben. Am Ende gibt es eine Note.</p>
+      <p class="note" style="margin-bottom:14px;">Wie eine echte Arbeit: gemischte Aufgaben, Lösungen erst nach dem Abgeben, am Ende eine Note.</p>
       <label class="field-label">Fach</label>
       <select onchange="state.params.subject=this.value; render();">
-        ${subjects.map(s => `<option value="${s.id}" ${s.id === p.subject ? 'selected' : ''}>${s.emoji} ${esc(s.name)}</option>`).join('')}
+        ${subjects.map(s => `<option value="${s.id}" ${s.id === p.subject ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}
       </select>
       <label class="field-label" style="margin-top:14px;">Was kommt dran?</label>
       <div class="check-list">${sources}</div>
@@ -65,9 +65,9 @@ function renderExamSetup(container) {
       ${subject.kind !== 'mathe' ? `
         <label class="check-row" style="margin-top:14px;">
           <input type="checkbox" ${p.open ? 'checked' : ''} onchange="state.params.open=this.checked; if(this.checked && !hasAiKey()){ this.checked=false; state.params.open=false; setApiKey(); }">
-          Offene Fragen mit KI-Korrektur (Erkläre, Beschreibe, Nenne …)
+          Offene Fragen dazu (Erkläre, Beschreibe, Nenne), automatisch korrigiert
         </label>` : ''}
-      <button class="btn btn-primary" style="margin-top:18px;" onclick="startExam()">▶ Probearbeit starten</button>
+      <button class="btn btn-primary" style="margin-top:18px;" onclick="startExam()">Starten</button>
     </div>`;
 }
 
@@ -122,7 +122,7 @@ async function startExam() {
       }
     });
     if (p.open) {
-      renderLoading('Die KI stellt offene Fragen zusammen', 'Gleich geht es los.');
+      renderLoading('Fragen werden zusammengestellt', 'Gleich geht es los.');
       try {
         const material = decks.flatMap(d => d.cards.map(c => `${c.term}: ${c.translation}`)).slice(0, 80).join('\n');
         const res = await aiAsk(`${SCHOOL_CONTEXT} Fach: ${subject.name}. Erstelle ${openCount} offene Fragen wie in einer Klassenarbeit (Operatoren wie Nenne, Beschreibe, Erkläre, Begründe${subject.kind === 'sprache' ? ', oder kurze Schreibaufgaben in der Fremdsprache' : ''}), die sich auf diesen Lernstoff beziehen:\n${material}\nGib zu jeder Frage einen Erwartungshorizont (was in einer vollen Antwort stehen muss) und 4 Punkte.\nJSON: {"questions":[{"q":"...","expected":"...","points":4}]}`);
@@ -154,13 +154,13 @@ function startExamTimer() {
     if (ex.endsAt) {
       const left = Math.max(0, Math.round((ex.endsAt - Date.now()) / 1000));
       if (el) {
-        el.textContent = `⏱ ${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+        el.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
         el.classList.toggle('urgent', left < 120);
       }
       if (left === 0) { clearInterval(examTimer); toast('Die Zeit ist um!'); submitExam(true); }
     } else if (el) {
       const used = Math.round((Date.now() - ex.startedAt) / 1000);
-      el.textContent = `⏱ ${Math.floor(used / 60)}:${String(used % 60).padStart(2, '0')}`;
+      el.textContent = `${Math.floor(used / 60)}:${String(used % 60).padStart(2, '0')}`;
     }
   }, 1000);
 }
@@ -197,8 +197,8 @@ function renderExam(container) {
   const dots = ex.items.map((it, i) => `<button class="q-dot ${i === ex.index ? 'current' : ''} ${isAnswered(it, ex.answers[i]) ? 'done' : ''}" onclick="state.exam.index=${i}; render();">${i + 1}</button>`).join('');
   container.innerHTML = `
     <div class="practice-top">
-      <button class="icon-btn" onclick="quitExam()">✕</button>
-      <span class="timer" id="examTimer">⏱ ${ex.endsAt ? Math.ceil((ex.endsAt - Date.now()) / 60000) + ':00' : '0:00'}</span>
+      <button class="icon-btn" onclick="quitExam()" aria-label="Abbrechen">${icon('close', 16)}</button>
+      <span class="timer" id="examTimer">${ex.endsAt ? Math.ceil((ex.endsAt - Date.now()) / 60000) + ':00' : '0:00'}</span>
       <button class="btn btn-primary btn-sm" style="width:auto;" onclick="submitExam()">Abgeben</button>
     </div>
     <div class="q-dots">${dots}</div>
@@ -207,8 +207,8 @@ function renderExam(container) {
       ${body}
     </div>
     <div class="row-2">
-      <button class="btn btn-outline" ${ex.index === 0 ? 'disabled' : ''} onclick="state.exam.index--; render();">← Zurück</button>
-      ${ex.index < ex.items.length - 1 ? `<button class="btn btn-primary" onclick="examNext()">Weiter →</button>` : `<button class="btn btn-success" onclick="submitExam()">✓ Abgeben</button>`}
+      <button class="btn btn-outline" ${ex.index === 0 ? 'disabled' : ''} onclick="state.exam.index--; render();">Zurück</button>
+      ${ex.index < ex.items.length - 1 ? `<button class="btn btn-primary" onclick="examNext()">Weiter</button>` : `<button class="btn btn-success" onclick="submitExam()">Abgeben</button>`}
     </div>`;
   setTimeout(() => {
     const first = item.type === 'math' && item.task.fields ? document.getElementById('e-' + item.task.fields[0].key) : document.getElementById('examText');
@@ -254,7 +254,7 @@ async function submitExam(timeUp = false) {
     const answered = openItems.filter(x => (ex.answers[x.i].text || '').trim());
     openItems.forEach(x => { ex.results[x.i] = { points: 0, feedback: 'Keine Antwort abgegeben.' }; });
     if (answered.length) {
-      renderLoading('Die KI korrigiert deine offenen Antworten', 'Gleich siehst du deine Note.');
+      renderLoading('Offene Antworten werden korrigiert', 'Gleich kommt die Note.');
       try {
         const res = await aiAsk(`${SCHOOL_CONTEXT} Du bist eine faire, aber genaue Lehrkraft und korrigierst Antworten einer Probearbeit im Fach ${getSubject(ex.subject).name}. Vergib für jede Antwort Punkte (halbe Punkte erlaubt) anhand des Erwartungshorizonts und schreibe 1 bis 3 Sätze Feedback direkt an den Schüler: was gut war, was gefehlt hat.\n\n${answered.map((x, n) => `Antwort ${n + 1}\nFrage: ${x.it.prompt}\nErwartungshorizont: ${x.it.expected}\nMaximal: ${x.it.points} Punkte\nAntwort des Schülers: ${ex.answers[x.i].text}`).join('\n\n')}\n\nJSON: {"results":[{"points":2.5,"feedback":"..."}]} in derselben Reihenfolge.`);
         (res.results || []).forEach((r, n) => {
@@ -263,7 +263,7 @@ async function submitExam(timeUp = false) {
           ex.results[x.i] = { points: Math.max(0, Math.min(x.it.points, Number(r.points) || 0)), feedback: String(r.feedback || '') };
         });
       } catch (err) {
-        answered.forEach(x => { ex.results[x.i] = { points: 0, feedback: 'Die KI-Korrektur hat nicht geklappt: ' + err.message + ' Vergleiche selbst mit dem Erwartungshorizont.' }; });
+        answered.forEach(x => { ex.results[x.i] = { points: 0, feedback: 'Korrektur hat nicht geklappt: ' + err.message + ' Bitte selbst mit dem Erwartungshorizont vergleichen.' }; });
       }
     }
   }
@@ -300,18 +300,18 @@ async function submitExam(timeUp = false) {
 function renderExamResult(container) {
   const ex = state.exam;
   const minutes = Math.max(1, Math.round((ex.finishedAt - ex.startedAt) / 60000));
-  const msg = { 1: 'Sehr gut! Du bist bereit. 🏆', 2: 'Gut! Nur noch Kleinigkeiten. 🎉', 3: 'Befriedigend. Schau dir die Fehler an. 💪', 4: 'Ausreichend. Da geht noch was, üb die falschen Aufgaben.', 5: 'Mangelhaft. Kein Stress: Genau dafür ist die Probe da.', 6: 'Ungenügend. Fang mit den Grundlagen an, dann wird das.' }[ex.grade];
+  const msg = { 1: 'Sehr gut', 2: 'Gut', 3: 'Befriedigend', 4: 'Ausreichend', 5: 'Mangelhaft', 6: 'Ungenügend' }[ex.grade];
 
   const list = ex.items.map((item, i) => {
     const r = ex.results[i];
     const a = ex.answers[i];
     const full = r.points >= item.points;
-    const icon = full ? '✓' : r.points > 0 ? '◐' : '✕';
+    const mark = full ? 'richtig' : r.points > 0 ? 'teilweise' : 'falsch';
     let your = '', right = '', extra = '';
     if (item.type === 'math') {
       your = item.task.choices ? (item.task.choices[a.choice] ?? '–') : item.task.fields.map(f => `${f.label.replace(/<[^>]+>/g, '')} ${a[f.key] || '–'}`).join(', ');
       right = answerText(item.task);
-      extra = `<details class="solution"><summary>📖 Lösungsweg</summary>${stepsHtml(item.task)}${item.task.plot ? plotSvg(item.task.plot) : ''}</details>`;
+      extra = `<details class="solution"><summary>Lösungsweg</summary>${stepsHtml(item.task)}${item.task.plot ? plotSvg(item.task.plot) : ''}</details>`;
     } else if (item.type === 'mc') {
       your = item.options[a.choice] ?? '–';
       right = item.options[item.correct];
@@ -326,12 +326,12 @@ function renderExamResult(container) {
     const q = item.type === 'math' ? item.task.q : esc(item.prompt);
     return `
       <div class="result-item ${full ? 'ok' : r.points > 0 ? 'half' : 'bad'}">
-        <div class="result-head"><span class="result-icon">${icon}</span><span class="mini-label">Aufgabe ${i + 1}</span><span class="mono-muted">${fmtN(r.points)} / ${item.points} P.</span></div>
+        <div class="result-head"><span class="result-icon">${mark}</span><span class="mini-label">Aufgabe ${i + 1}</span><span class="mono-muted">${fmtN(r.points)} / ${item.points} P.</span></div>
         <div class="result-q">${q}</div>
         <p class="result-a"><b>Deine Antwort:</b> ${esc(your)}</p>
         ${right && !full ? `<p class="result-a"><b>Richtig:</b> ${esc(right)}</p>` : ''}
         ${extra}
-        ${!full ? `<button class="btn btn-outline btn-xs" onclick="explainExamItem(${i})">🤖 Erklär mir das</button>` : ''}
+        ${!full ? `<button class="btn btn-outline btn-xs" onclick="explainExamItem(${i})">Erklärung</button>` : ''}
       </div>`;
   }).join('');
 
@@ -342,10 +342,10 @@ function renderExamResult(container) {
       <p class="mono">${fmtN(ex.points)} von ${ex.max} Punkten · ${fmtN(ex.pct)} %</p>
       <p class="note">${minutes} Minute${minutes === 1 ? '' : 'n'} · ${msg}</p>
     </div>
-    <h3 class="group-title">Deine Aufgaben</h3>
+    <h3 class="group-title">Aufgaben</h3>
     ${list}
     <div class="action-grid">
-      <button class="btn btn-primary" onclick="redoExam()">🔁 Neue Probearbeit</button>
+      <button class="btn btn-primary" onclick="redoExam()">Neue Probearbeit</button>
       <button class="btn btn-outline" onclick="leaveExam()">Fertig</button>
     </div>
     <p class="note center">Hinweis: Notenschlüssel 92 / 81 / 67 / 50 / 30 %. Deine Lehrkraft nutzt vielleicht einen anderen.</p>`;

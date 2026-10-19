@@ -3,18 +3,18 @@
 const LEVEL_TITLES = ['Neuling', 'Anfänger', 'Lernender', 'Fleißig', 'Wissbegierig', 'Kluger Kopf', 'Ass', 'Streber', 'Profi', 'Experte', 'Meister', 'Genie', 'Legende'];
 
 const BADGES = [
-  { id: 'first',    icon: '🌱', name: 'Erste Runde',      desc: 'Die erste Lernrunde geschafft' },
-  { id: 'streak3',  icon: '🔥', name: '3 Tage am Stück',  desc: 'Drei Tage in Folge gelernt' },
-  { id: 'streak7',  icon: '🚀', name: 'Wochen-Streak',    desc: 'Sieben Tage in Folge gelernt' },
-  { id: 'streak30', icon: '👑', name: 'Monats-Streak',    desc: '30 Tage in Folge gelernt' },
-  { id: 'goal',     icon: '🎯', name: 'Tagesziel',        desc: 'Das Tagesziel erreicht' },
-  { id: 'xp1000',   icon: '⚡', name: '1000 XP',          desc: '1000 XP gesammelt' },
-  { id: 'exam',     icon: '📝', name: 'Probearbeit',      desc: 'Die erste Probearbeit geschrieben' },
-  { id: 'grade1',   icon: '🏆', name: 'Glatte Eins',      desc: 'Eine Probearbeit mit Note 1' },
-  { id: 'math50',   icon: '📐', name: 'Rechenkünstler',   desc: '50 Matheaufgaben richtig' },
-  { id: 'cards100', icon: '🧠', name: 'Gedächtnis',       desc: '100 Karten sicher gelernt' },
-  { id: 'scan',     icon: '📷', name: 'Scanner',          desc: 'Zum ersten Mal ein Foto gescannt' },
-  { id: 'tutor',    icon: '💬', name: 'Neugierig',        desc: 'Die Nachhilfe zum ersten Mal gefragt' }
+  { id: 'first',    icon: 'check', name: 'Erste Runde',      desc: 'Die erste Lernrunde geschafft' },
+  { id: 'streak3',  icon: 'flame', name: '3 Tage am Stück',  desc: 'Drei Tage in Folge gelernt' },
+  { id: 'streak7',  icon: 'flame', name: 'Wochen-Streak',    desc: 'Sieben Tage in Folge gelernt' },
+  { id: 'streak30', icon: 'flame', name: 'Monats-Streak',    desc: '30 Tage in Folge gelernt' },
+  { id: 'goal',     icon: 'target', name: 'Tagesziel',        desc: 'Das Tagesziel erreicht' },
+  { id: 'xp1000',   icon: 'bolt', name: '1000 XP',          desc: '1000 XP gesammelt' },
+  { id: 'exam',     icon: 'pen', name: 'Probearbeit',      desc: 'Die erste Probearbeit geschrieben' },
+  { id: 'grade1',   icon: 'medal', name: 'Glatte Eins',      desc: 'Eine Probearbeit mit Note 1' },
+  { id: 'math50',   icon: 'dice', name: 'Rechenkünstler',   desc: '50 Matheaufgaben richtig' },
+  { id: 'cards100', icon: 'layers', name: 'Gedächtnis',       desc: '100 Karten sicher gelernt' },
+  { id: 'scan',     icon: 'camera', name: 'Scanner',          desc: 'Zum ersten Mal ein Foto gescannt' },
+  { id: 'tutor',    icon: 'chat', name: 'Neugierig',        desc: 'Zum ersten Mal eine Frage gestellt' }
 ];
 
 function levelInfo(xp = state.data.stats.xp) {
@@ -45,11 +45,11 @@ function addXp(amount) {
   s.xp += amount;
   s.daily[today] = before + amount;
   if (before < s.dailyGoal && s.daily[today] >= s.dailyGoal) {
-    toast('🎯 Tagesziel geschafft! Stark.');
+    toast('Tagesziel erreicht.');
     unlockBadge('goal');
   }
   const lvl = levelInfo(s.xp);
-  if (lvl.level > oldLevel) setTimeout(() => toast(`⭐ Level ${lvl.level}: ${lvl.title}!`), 900);
+  if (lvl.level > oldLevel) setTimeout(() => toast(`Level ${lvl.level}: ${lvl.title}`), 900);
   const streak = currentStreak();
   s.streak = streak;
   s.best = Math.max(s.best || 0, streak);
@@ -64,7 +64,7 @@ function unlockBadge(id) {
   if (s.badges.includes(id)) return;
   s.badges.push(id);
   const b = BADGES.find(x => x.id === id);
-  if (b) setTimeout(() => toast(`${b.icon} Abzeichen: ${b.name}`), 1400);
+  if (b) setTimeout(() => toast(`Neues Abzeichen: ${b.name}`), 1400);
 }
 
 function checkBadges() {
@@ -121,7 +121,7 @@ function markPlanDone(ref, subject) {
       if (hit) { task.done = true; count++; }
     });
   });
-  if (count) setTimeout(() => toast(`✅ ${count} Aufgabe${count > 1 ? 'n' : ''} im Lernplan erledigt`), 500);
+  if (count) setTimeout(() => toast(`Lernplan: ${count} Aufgabe${count > 1 ? 'n' : ''} abgehakt`), 500);
 }
 
 function xpBar(compact = false) {

@@ -140,13 +140,13 @@ function setApiKey() {
              <li>Kopiere den Schlüssel und füge ihn unten ein.</li>`
   };
   openModal(`
-    <h3 class="modal-title">🔑 KI einrichten</h3>
+    <h3 class="modal-title">KI-Key</h3>
     <label class="field-label">Anbieter</label>
     <select id="providerSelect" onchange="state.provider=this.value; localStorage.setItem('ai-provider', this.value); setApiKey();">
       ${Object.entries(PROVIDER_NAMES).map(([id, name]) => `<option value="${id}" ${state.provider === id ? 'selected' : ''}>${name}</option>`).join('')}
     </select>
     <ol class="steps">${steps[state.provider]}</ol>
-    <button class="btn btn-outline btn-sm" onclick="openTutorialVideo()">▶ Video-Anleitung</button>
+    <button class="btn btn-outline btn-sm" onclick="openTutorialVideo()">${icon('play', 14)} Video-Anleitung</button>
     <label class="field-label" style="margin-top:16px;">Dein API-Key</label>
     <input id="apiKeyInput" type="password" autocomplete="off" value="${esc(state.apiKeys[state.provider] || '')}" placeholder="API-Key hier einfügen">
     <p class="note">Der Key bleibt nur auf diesem Gerät gespeichert.</p>
@@ -162,7 +162,7 @@ function saveApiKey() {
   state.apiKeys[state.provider] = key;
   localStorage.setItem('key-' + state.provider, key);
   closeModal();
-  toast(key ? 'KI ist bereit.' : 'Key entfernt.');
+  toast(key ? 'Key gespeichert.' : 'Key entfernt.');
   render();
 }
 
@@ -171,7 +171,7 @@ function openTutorialVideo() {
     <h3 class="modal-title">Video-Anleitung</h3>
     <p class="note" style="margin-bottom:12px;">So findest du deinen API-Key und fügst ihn ein.</p>
     <video controls playsinline preload="metadata" style="width:100%; border:2px solid var(--ink); background:#000;"><source src="./api-key-tutorial.mp4" type="video/mp4"></video>
-    <button class="btn btn-primary" style="margin-top:16px;" onclick="setApiKey()">← Zurück zum Key</button>
+    <button class="btn btn-primary" style="margin-top:16px;" onclick="setApiKey()">Zurück</button>
   `);
 }
 

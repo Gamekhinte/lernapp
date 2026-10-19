@@ -574,3 +574,28 @@ sup { font-size: .7em; }
 .nb-row span { flex: 1; overflow-wrap: anywhere; }
 .nb-row select { width: 52%; font-size: 14px; padding: 6px 8px; }
 .one-settings summary { cursor: pointer; }
+
+/* ---------- Icons und Fach-Kürzel ---------- */
+
+.ico { display: inline-block; vertical-align: -3px; flex-shrink: 0; }
+.btn .ico, .icon-btn .ico { vertical-align: middle; }
+.chip-sep { display: inline-block; width: 1px; height: 12px; background: currentColor; opacity: .5; margin: 0 6px; vertical-align: -1px; }
+.subj-badge {
+  display: inline-grid; place-items: center; flex-shrink: 0;
+  background: var(--subject); border: 2px solid var(--ink); border-radius: 4px;
+  font-family: 'Space Mono', monospace; font-weight: 700; letter-spacing: -.5px;
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+.subj-badge.sm { width: 26px; height: 26px; font-size: 10px; }
+.subj-badge.md { width: 34px; height: 34px; font-size: 12px; }
+.subj-badge.lg { width: 44px; height: 44px; font-size: 14px; }
+.subject-card .subj-badge { margin-right: 4px; }
+.subject-tile .subj-badge { margin-bottom: 4px; }
+.tutor-empty .subj-badge { margin: 0 auto; }
+.one-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.one-title small { width: 100%; }
+.one-banner > span:first-child { display: grid; place-items: center; }
+.big-number { font-family: 'Space Mono', monospace; font-size: 54px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+.result-icon { font-family: 'Space Mono', monospace; font-size: 11px; text-transform: uppercase; }
+.auth-logo { width: 72px; height: 72px; display: block; margin: 0 auto 6px; }
+.nav-icon { height: 22px; }
