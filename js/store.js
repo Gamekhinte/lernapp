@@ -58,6 +58,7 @@ function emptyData() {
     stats: { xp: 0, daily: {}, streak: 0, best: 0, lastDay: null, badges: [], dailyGoal: 100 },
     settings: { theme: 'classic' },
     onenote: { notebooks: {}, sections: {}, texts: {}, seen: {}, items: [], lastScan: null },
+    deleted: {},
     updatedAt: null
   };
 }
@@ -145,38 +146,6 @@ function saveData() {
   queueCloudSync();
 }
 
-function queueCloudSync() {
-  if (!state.authUser || !supabaseClient) return;
-  clearTimeout(state.cloudSyncTimer);
-  state.cloudSyncTimer = setTimeout(syncCloudData, 600);
-}
-
-async function syncCloudData() {
-  if (!state.authUser || !supabaseClient) return;
-  const payload = { ...state.data, learningHistory: state.data.learningHistory.slice(0, 200) };
-  const { error } = await supabaseClient
-    .from('user_data')
-    .upsert({ user_id: state.authUser.id, data: payload, updated_at: payload.updatedAt || new Date().toISOString() }, { onConflict: 'user_id' });
-  if (error) console.warn('Cloud-Sync nicht möglich:', error.message);
-}
-
-async function loadCloudData() {
-  if (!state.authUser || !supabaseClient) return;
-  const { data, error } = await supabaseClient
-    .from('user_data')
-    .select('data')
-    .eq('user_id', state.authUser.id)
-    .maybeSingle();
-  if (error || !data?.data) {
-    // Neues Konto: lokale Daten hochladen
-    queueCloudSync();
-    return;
-  }
-  state.data = normalizeData(data.data);
-  localStorage.setItem(DATA_KEY, JSON.stringify(state.data));
-  applyTheme();
-}
-
 function exportBackup() {
   const blob = new Blob([JSON.stringify(state.data, null, 1)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -226,6 +195,7 @@ function updateCard(deckId, cardId, success) {
   card.due = todayStr(success ? BOX_DAYS[box] : 0);
   card.needsPractice = !success;
   card.masteryLevel = Math.min(box, 3);
+  deck.updatedAt = new Date().toISOString();
 }
 
 function deckStats(deck) {

@@ -81,6 +81,8 @@ function saveSubject(editId) {
 function deleteSubject(id) {
   const count = state.data.decks.filter(d => d.subject === id).length;
   if (!confirm(count ? `Fach löschen? ${count} Kartei(en) darin werden mit gelöscht.` : 'Fach löschen?')) return;
+  markDeleted(id);
+  state.data.decks.filter(d => d.subject === id).forEach(d => markDeleted(d.id));
   state.data.customSubjects = state.data.customSubjects.filter(s => s.id !== id);
   state.data.decks = state.data.decks.filter(d => d.subject !== id);
   state.data.folders = state.data.folders.filter(f => f.subject !== id);
@@ -210,6 +212,7 @@ function confirmFolder(id, subjectId) {
 function deleteFolder(id) {
   if (!confirm('Ordner löschen? Die Karteien darin bleiben erhalten.')) return;
   const f = state.data.folders.find(x => x.id === id);
+  markDeleted(id);
   state.data.folders = state.data.folders.filter(x => x.id !== id);
   state.data.decks.forEach(d => { if (d.folderId === id) d.folderId = null; });
   saveData();
@@ -231,7 +234,9 @@ function chooseFolderForDeck(deckId) {
 }
 
 function setDeckFolder(deckId, folderId) {
-  state.data.decks.find(d => d.id === deckId).folderId = folderId;
+  const deck = state.data.decks.find(d => d.id === deckId);
+  deck.folderId = folderId;
+  touch(deck);
   saveData();
   closeModal();
   render();
@@ -241,6 +246,7 @@ function moveDeckSubject(deckId, subjectId) {
   const deck = state.data.decks.find(d => d.id === deckId);
   deck.subject = subjectId;
   deck.folderId = null;
+  touch(deck);
   saveData();
   closeModal();
   toast('Kartei verschoben.');
@@ -337,7 +343,7 @@ function saveDeck() {
   let deck;
   if (ed.deckId) {
     deck = state.data.decks.find(d => d.id === ed.deckId);
-    Object.assign(deck, { name: ed.name.trim() || deck.name, type: ed.type, sourceLang: ed.sourceLang, cards, quiz: ed.quiz, pages: ed.pages });
+    Object.assign(deck, { name: ed.name.trim() || deck.name, type: ed.type, sourceLang: ed.sourceLang, cards, quiz: ed.quiz, pages: ed.pages, updatedAt: new Date().toISOString() });
   } else {
     deck = {
       id: uid(), name: ed.name.trim() || 'Neue Kartei', subject: ed.subject, type: ed.type, sourceLang: ed.sourceLang,
@@ -353,6 +359,7 @@ function saveDeck() {
 
 function deleteDeck(id) {
   if (!confirm('Kartei wirklich löschen?')) return;
+  markDeleted(id);
   state.data.decks = state.data.decks.filter(d => d.id !== id);
   saveData();
   render();
@@ -954,6 +961,7 @@ function addDeckPage(id, deckId) {
   const deck = state.data.decks.find(d => d.id === deckId);
   if (!deck) return;
   deck.pages = [...(deck.pages || []), id];
+  touch(deck);
   saveData();
   toast('Bild angehängt. Tipp drauf, um es groß zu sehen oder dazu zu fragen.');
   render();

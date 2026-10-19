@@ -357,6 +357,7 @@ function saveMathSet(title, tasks, source) {
 
 function deleteMathSet(id) {
   if (!confirm('Aufgaben löschen?')) return;
+  markDeleted(id);
   state.data.mathSets = state.data.mathSets.filter(s => s.id !== id);
   saveData();
   render();

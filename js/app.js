@@ -174,8 +174,8 @@ function renderProfile(container) {
 
       <label class="field-label" style="margin-top:16px;">Konto</label>
       ${state.authUser
-        ? `<p class="note" style="margin:0 0 8px;">Angemeldet als ${esc(state.authUser.email)}.</p><button class="btn btn-outline" onclick="logout()">Abmelden</button>`
-        : `<p class="note" style="margin:0 0 8px;">Ohne Konto bleiben deine Daten nur auf diesem Gerät.</p><button class="btn btn-outline" onclick="go('auth')">Anmelden / Konto erstellen</button>`}
+        ? `<p class="note" style="margin:0 0 8px;">Angemeldet als ${esc(state.authUser.email)}.</p>${syncStatusHtml()}<button class="btn btn-outline" onclick="logout()">Abmelden</button>`
+        : `<p class="note" style="margin:0 0 8px; color:var(--red);">Nicht angemeldet: Deine Daten bleiben nur auf diesem Gerät und kommen nicht auf andere Geräte.</p><button class="btn btn-outline" onclick="go('auth')">Anmelden / Konto erstellen</button>`}
 
       <label class="field-label" style="margin-top:16px;">Backup</label>
       <div class="row-2">
@@ -249,6 +249,8 @@ async function logout() {
   if (!confirm('Abmelden? Deine Daten bleiben in der Cloud gespeichert.')) return;
   await supabaseClient?.auth.signOut();
   state.authUser = null;
+  state.cloudReady = false;
+  state.cloudBase = null;
   state.isGuest = false;
   localStorage.removeItem('guest-mode');
   state.authMode = 'login';

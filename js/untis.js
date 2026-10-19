@@ -134,7 +134,7 @@ function importUntisExams() {
     if (existing) {
       const changed = existing.date !== e.date;
       Object.assign(existing, { date: e.date, note: e.text || existing.note || '' });
-      if (changed) existing.tasks = generatePlan(existing, existing.tasks);
+      if (changed) { existing.tasks = generatePlan(existing, existing.tasks); touch(existing); }
       return;
     }
     const exam = {

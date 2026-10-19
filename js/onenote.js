@@ -454,6 +454,7 @@ async function processOneNote() {
         deck.cards.push(...cards.filter(c => !known.has(c.term.toLowerCase())));
         deck.quiz.push(...quiz);
         deck.pages = [...new Set([...(deck.pages || []), ...pages])];
+        touch(deck);
       } else {
         deck = {
           id: uid(), name: list[0].section, subject: subject.id,

@@ -338,7 +338,7 @@ function saveExamPlan() {
   let exam = p.id ? state.data.exams.find(e => e.id === p.id) : null;
   const title = p.title.trim() || getSubject(p.subject).name + '-Arbeit';
   if (exam) {
-    Object.assign(exam, { subject: p.subject, title, date: p.date, sources });
+    Object.assign(exam, { subject: p.subject, title, date: p.date, sources, updatedAt: new Date().toISOString() });
     exam.tasks = generatePlan(exam, exam.tasks);
   } else {
     exam = { id: uid(), subject: p.subject, title, date: p.date, sources, createdAt: new Date().toISOString() };
@@ -356,6 +356,7 @@ function deleteExam(id) {
   // Aus Untis gelöschte Arbeiten nicht beim nächsten Abruf wieder anlegen
   if (ex?.untisId && state.data.untis) (state.data.untis.ignoredExams = state.data.untis.ignoredExams || []).push(ex.untisId);
   if (ex?.scpId) untisData().ignoredExams.push(ex.scpId);
+  markDeleted(id);
   state.data.exams = state.data.exams.filter(e => e.id !== id);
   saveData();
   go('plan');
