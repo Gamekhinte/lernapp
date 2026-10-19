@@ -149,11 +149,10 @@ function importUntisExams() {
 }
 
 async function initUntis() {
-  if (!untisReady()) return;
-  const u = untisData();
-  const age = u.lastSync ? (Date.now() - new Date(u.lastSync)) / 60000 : Infinity;
-  if (age > 60) await syncUntis({ silent: true });
-  setInterval(() => syncUntis({ silent: true }), 60 * 60000);
+  const stale = t => !t || (Date.now() - new Date(t)) / 60000 > 60;
+  if (untisReady() && stale(untisData().lastSync)) await syncUntis({ silent: true });
+  if (scpData().email && scpPassword() && stale(scpData().lastSync)) await syncScp({ silent: true });
+  setInterval(() => { syncUntis({ silent: true }); syncScp({ silent: true }); }, 60 * 60000);
 }
 
 // ---------- Daten für die Startseite ----------
@@ -287,7 +286,8 @@ function renderUntis(container) {
   const hw = homeworkOpen();
   const upcoming = u.exams.filter(e => e.date >= todayStr()).sort((a, b) => a.date.localeCompare(b.date));
   container.innerHTML = `
-    <div class="setup-header">${backBtn('profile')}<h3>Untis</h3><span></span></div>
+    <div class="setup-header">${backBtn('profile')}<h3>Schule verbinden</h3><span></span></div>
+    <h3 class="group-title">Untis</h3>
     ${top}
     ${days.length ? `
       <h3 class="group-title">Stundenplan</h3>
@@ -321,7 +321,9 @@ function renderUntis(container) {
             </select></div>`;
         }).join('')}
       </details>` : ''}
-    <p class="note center">Arbeiten aus Untis landen automatisch im Lernplan. Abgerufen wird beim Öffnen und jede Stunde.</p>
+    <h3 class="group-title">SCP</h3>
+    ${scpCardHtml()}
+    <p class="note center">Arbeiten aus Untis und dem SCP landen automatisch im Lernplan. Abgerufen wird beim Öffnen und jede Stunde.</p>
   `;
 }
 

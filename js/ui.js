@@ -96,17 +96,14 @@ function go(screen, params = {}) {
   };
   if (same || reduceMotion || from === 'auth') return update();
   const dir = from === 'loading' ? 'fade' : navDirection(from, screen);
-  if (document.startViewTransition) {
-    document.documentElement.dataset.nav = dir;
-    document.startViewTransition(update);
-  } else {
-    update();
-    // Ersatz für Browser ohne View Transitions
-    const app = document.getElementById('app');
-    app.classList.remove('anim-left', 'anim-right', 'anim-fade');
-    void app.offsetWidth;
-    app.classList.add('anim-' + dir);
-  }
+  update();
+  // Nur die neue Seite reinschieben. Kein Schnappschuss der alten Seite, das hat bei langen Seiten geruckelt.
+  const app = document.getElementById('app');
+  app.classList.remove('anim-left', 'anim-right', 'anim-fade');
+  void app.offsetWidth;
+  app.classList.add('anim-' + dir);
+  clearTimeout(app._animTimer);
+  app._animTimer = setTimeout(() => app.classList.remove('anim-left', 'anim-right', 'anim-fade'), 400);
 }
 
 function renderNav() {

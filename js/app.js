@@ -145,9 +145,9 @@ function renderProfile(container) {
     </div>
 
     <div class="card">
-      <h3 class="card-title">Untis</h3>
+      <h3 class="card-title">Untis und SCP</h3>
       <p class="note" style="margin:0 0 10px;">${untisData().school ? `${esc(untisData().school.displayName)} · ${untisData().lastSync ? 'zuletzt ' + new Date(untisData().lastSync).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' }) : 'noch nicht abgerufen'}` : 'Stundenplan, Ausfall, Hausaufgaben und Arbeiten aus WebUntis übernehmen.'}</p>
-      <button class="btn btn-outline" onclick="go('untis')">${icon('calendar')} Untis</button>
+      <button class="btn btn-outline" onclick="go('untis')">${icon('calendar')} Schule verbinden</button>
     </div>
 
     <div class="card">

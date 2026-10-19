@@ -256,6 +256,7 @@ function deleteExam(id) {
   const ex = state.data.exams.find(e => e.id === id);
   // Aus Untis gelöschte Arbeiten nicht beim nächsten Abruf wieder anlegen
   if (ex?.untisId && state.data.untis) (state.data.untis.ignoredExams = state.data.untis.ignoredExams || []).push(ex.untisId);
+  if (ex?.scpId) untisData().ignoredExams.push(ex.scpId);
   state.data.exams = state.data.exams.filter(e => e.id !== id);
   saveData();
   go('plan');
@@ -283,7 +284,7 @@ function renderExamPlan(container) {
       <p class="mono">${daysBetween(todayStr(), exam.date) === 1 ? 'Tag' : 'Tage'} bis zur Arbeit · ${dateLabel(exam.date)}</p>
       <div class="bar" style="margin:14px 0 6px;"><div style="width:${total ? Math.round(done / total * 100) : 0}%"></div></div>
       <p class="note">${done} von ${total} Aufgaben erledigt</p>
-      ${exam.note ? `<p class="note"><b>Aus Untis:</b> ${esc(exam.note)}</p>` : ''}
+      ${exam.note ? `<p class="note"><b>Info aus der Schule:</b> ${esc(exam.note)}</p>` : ''}
       ${results.length ? `<p class="note">Letzte Probearbeiten: ${results.map(r => `<b>${esc(r.gradeLabel)}</b>`).join(' · ')}</p>` : ''}
     </div>
     <div class="quick-grid two">
