@@ -18,7 +18,8 @@ const SCREENS = {
   examPlan: renderExamPlan,
   profile: renderProfile,
   history: renderHistory,
-  onenote: renderOneNote
+  onenote: renderOneNote,
+  untis: renderUntis
 };
 
 function render() {
@@ -76,6 +77,7 @@ function renderHome(container) {
     ${oneNoteBanner()}
     ${onboarding}
     ${exams.slice(0, 2).map(examBanner).join('')}
+    ${untisHomeCards()}
     ${tasks.length ? `<div class="card"><h3 class="card-title">Heute dran</h3>${tasks.map(({ exam, task }) => taskRow(exam, task)).join('')}</div>` : ''}
     ${due ? `<button class="btn btn-primary big-btn" onclick="startDueReview()">${icon('repeat')} ${due} Karte${due > 1 ? 'n' : ''} wiederholen</button>` : ''}
     <h3 class="group-title">Fächer</h3>
@@ -140,6 +142,12 @@ function renderProfile(container) {
       <div class="badge-grid">
         ${BADGES.map(b => `<div class="badge-item ${s.badges.includes(b.id) ? 'on' : ''}" title="${esc(b.desc)}"><span>${icon(b.icon, 22)}</span><small>${esc(b.name)}</small></div>`).join('')}
       </div>
+    </div>
+
+    <div class="card">
+      <h3 class="card-title">Untis</h3>
+      <p class="note" style="margin:0 0 10px;">${untisData().school ? `${esc(untisData().school.displayName)} · ${untisData().lastSync ? 'zuletzt ' + new Date(untisData().lastSync).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' }) : 'noch nicht abgerufen'}` : 'Stundenplan, Ausfall, Hausaufgaben und Arbeiten aus WebUntis übernehmen.'}</p>
+      <button class="btn btn-outline" onclick="go('untis')">${icon('calendar')} Untis</button>
     </div>
 
     <div class="card">
@@ -316,7 +324,7 @@ applyTheme();
 const hasSession = !!localStorage.getItem('sb-jxkcxfmutaxmhifgbufv-auth-token');
 state.screen = state.isGuest || hasSession ? 'home' : 'auth';
 render();
-initAuth();
+initAuth().then(initUntis);
 initOneNote();
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {

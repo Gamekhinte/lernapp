@@ -599,3 +599,19 @@ sup { font-size: .7em; }
 .result-icon { font-family: 'Space Mono', monospace; font-size: 11px; text-transform: uppercase; }
 .auth-logo { width: 72px; height: 72px; display: block; margin: 0 auto 6px; }
 .nav-icon { height: 22px; }
+
+/* ---------- Untis ---------- */
+
+.lesson-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--rule); cursor: pointer; }
+.lesson-row:last-child { border-bottom: none; }
+.lesson-time { font-family: 'Space Mono', monospace; font-size: 12px; width: 42px; color: var(--ink-muted); }
+.lesson-text { flex: 1; min-width: 0; }
+.lesson-text span { display: block; font-weight: 600; font-size: 14px; }
+.lesson-text small { display: block; font-size: 11px; color: var(--ink-muted); }
+.lesson-row.cancelled .lesson-text span { text-decoration: line-through; opacity: .6; }
+.lesson-flag { color: var(--red) !important; font-weight: 700; text-transform: uppercase; font-family: 'Space Mono', monospace; }
+.lesson-row.irregular .lesson-flag { color: #b7791f !important; }
+.school-pick { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border: 2px solid var(--ink); border-radius: 4px; background: var(--paper); margin-bottom: 8px; }
+.school-pick small, .school-result small { display: block; color: var(--ink-muted); font-size: 12px; }
+.school-results { display: grid; gap: 6px; margin-top: 8px; }
+.school-result { text-align: left; padding: 8px 10px; border: 2px solid var(--ink); border-radius: 4px; background: var(--paper-card); color: var(--ink); font-family: inherit; cursor: pointer; box-shadow: 2px 2px 0 var(--shadow); }

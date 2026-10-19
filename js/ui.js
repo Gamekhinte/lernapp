@@ -82,7 +82,7 @@ function renderNav() {
   nav.hidden = false;
   const active = {
     subject: 'subjects', deckEdit: 'subjects', deckSetup: 'subjects', summary: 'home', mathTopic: 'subjects',
-    examSetup: 'home', examResult: 'home', onenote: 'home', examEdit: 'plan', examPlan: 'plan', history: 'profile'
+    examSetup: 'home', examResult: 'home', onenote: 'home', untis: 'profile', examEdit: 'plan', examPlan: 'plan', history: 'profile'
   }[state.screen] || state.screen;
   nav.innerHTML = NAV.map(n => `
     <button class="nav-btn ${active === n.screen ? 'active' : ''}" onclick="go('${n.screen}')" aria-label="${n.label}">
