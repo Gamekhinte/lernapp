@@ -157,7 +157,7 @@ function renderProfile(container) {
       <h3 class="card-title">OneNote</h3>
       <p class="note" style="margin:0 0 10px;">${state.data.onenote.lastScan ? `Zuletzt geprüft: ${new Date(state.data.onenote.lastScan).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })} · ${newOneNoteItems().length} neue Seiten` : 'Arbeitsblätter und Hefteinträge aus OneNote übernehmen.'}</p>
       <button class="btn btn-outline" onclick="go('onenote')">${icon('note')} OneNote</button>
-      ${state.storageMissing ? '<p class="note" style="color:var(--red)">Bilder werden noch nicht in die Cloud geladen: Der Bilder-Speicher in Supabase fehlt (Datei supabase-bilder.sql).</p>' : ''}
+      ${state.imgUpload?.left ? `<p class="note">${state.imgUpload.error ? `Bilder-Upload hängt (${esc(state.imgUpload.error)}), noch ${state.imgUpload.left} offen.` : `Bilder werden in die Cloud geladen, noch ${state.imgUpload.left}.`}</p>` : ''}
     </div>
 
     <div class="card">

@@ -1,7 +1,6 @@
 // Bilder: lokal in IndexedDB, mit Konto zusätzlich im privaten Supabase-Speicher (Bucket "lernapp-bilder").
 // Karten und Karteien speichern nur die Bild-ID, damit die synchronisierten Daten klein bleiben.
 
-const IMG_BUCKET = 'lernapp-bilder';
 const PENDING_KEY = 'lernapp-img-pending';
 let idbPromise = null;
 
@@ -85,25 +84,48 @@ function queueImageUpload() {
   uploadTimer = setTimeout(uploadPendingImages, 1500);
 }
 
+// Bilder laufen über die Funktion lernapp-images, die das Lernapp-Login prüft
+const IMG_FN = 'https://fgjtokbluxqnzotblnly.supabase.co/functions/v1/lernapp-images';
+
+async function imgCall(body) {
+  const { data } = await supabaseClient.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) throw new Error('nicht angemeldet');
+  const res = await fetch(IMG_FN, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-lernapp-token': token }, body: JSON.stringify(body) });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(out.error || 'Fehler ' + res.status), { status: res.status });
+  return out;
+}
+
 async function uploadPendingImages() {
-  if (uploading || !state.authUser || !supabaseClient || state.storageMissing) return;
+  if (uploading || !state.authUser || !supabaseClient) return;
   uploading = true;
+  state.imgUpload = { left: getPending().length };
   try {
     let pending = getPending();
-    for (const id of [...pending]) {
-      const b64 = await idbGet('images', id);
-      if (b64) {
-        const { error } = await supabaseClient.storage.from(IMG_BUCKET)
-          .upload(`${state.authUser.id}/${id}.jpg`, new Blob([base64ToBytes(b64)], { type: 'image/jpeg' }), { upsert: true, contentType: 'image/jpeg' });
-        if (error && !/exists|duplicate/i.test(error.message)) {
-          if (/bucket not found|not found/i.test(error.message)) state.storageMissing = true;
-          console.warn('Bild-Upload nicht möglich:', error.message);
-          break;
-        }
-      }
-      pending = getPending().filter(x => x !== id);
-      setPending(pending);
+    // Was schon in der Cloud liegt, nicht nochmal hochladen
+    if (pending.length > 5) {
+      try {
+        const { have } = await imgCall({ action: 'has', ids: pending });
+        if (have?.length) { pending = pending.filter(id => !have.includes(id)); setPending(pending); }
+      } catch (e) { /* dann eben alle hochladen */ }
     }
+    // Drei gleichzeitig, damit 200 OneNote-Seiten nicht ewig dauern
+    const queue = [...pending];
+    const worker = async () => {
+      while (queue.length) {
+        const id = queue.shift();
+        const b64 = await idbGet('images', id);
+        if (b64) await imgCall({ action: 'upload', id, data: b64 });
+        setPending(getPending().filter(x => x !== id));
+        state.imgUpload = { left: getPending().length };
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+    state.imgUpload = null;
+  } catch (err) {
+    console.warn('Bild-Upload nicht möglich:', err.message);
+    state.imgUpload = { left: getPending().length, error: err.message };
   } finally {
     uploading = false;
   }
@@ -111,15 +133,19 @@ async function uploadPendingImages() {
 
 // Lokal oder aus der Cloud laden
 const imgMemo = {};
+const imgMissing = new Set();
 async function getImageBase64(id) {
   if (!id) return null;
   if (imgMemo[id]) return imgMemo[id];
   let b64 = await idbGet('images', id);
-  if (!b64 && state.authUser && supabaseClient) {
-    const { data, error } = await supabaseClient.storage.from(IMG_BUCKET).download(`${state.authUser.id}/${id}.jpg`);
-    if (!error && data) {
-      b64 = await blobToBase64(data);
-      await idbSet('images', id, b64);
+  if (!b64 && state.authUser && supabaseClient && !imgMissing.has(id)) {
+    try {
+      const out = await imgCall({ action: 'get', id });
+      b64 = out.data;
+      if (b64) await idbSet('images', id, b64);
+    } catch (err) {
+      // Liegt noch nicht in der Cloud (z. B. Laptop hat noch nicht hochgeladen)
+      if (err.status === 404) imgMissing.add(id);
     }
   }
   if (b64) imgMemo[id] = b64;
@@ -183,3 +209,5 @@ function pickImage(callbackName, arg = '') {
   };
   input.click();
 }
+
+setInterval(() => { if (getPending().length) uploadPendingImages(); }, 60000);
