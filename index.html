@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Liams Lernapp</title>
+  <meta name="description" content="Lernen für alle Fächer: Vokabeln, Mathe, Geschichte, Erdkunde und Bio mit Probearbeiten, Lernplan und KI-Nachhilfe.">
+  <meta name="theme-color" content="#f4efdf">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Lernapp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=2">
+</head>
+<body>
+  <header>
+    <h1 onclick="if(state.screen!=='auth') go('home')">Lernapp</h1>
+    <button class="badge" id="streakChip" hidden onclick="go('profile')"></button>
+  </header>
+
+  <main id="app"></main>
+  <nav id="bottomNav" hidden></nav>
+  <div id="modalContainer"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="js/data.js?v=2"></script>
+  <script src="js/store.js?v=2"></script>
+  <script src="js/ui.js?v=2"></script>
+  <script src="js/images.js?v=2"></script>
+  <script src="js/ai.js?v=2"></script>
+  <script src="js/gamify.js?v=2"></script>
+  <script src="js/math.js?v=2"></script>
+  <script src="js/decks.js?v=2"></script>
+  <script src="js/mathview.js?v=2"></script>
+  <script src="js/exam.js?v=2"></script>
+  <script src="js/tutor.js?v=2"></script>
+  <script src="js/plan.js?v=2"></script>
+  <script src="js/onenote.js?v=2"></script>
+  <script src="js/app.js?v=2"></script>
+</body>
+</html>
