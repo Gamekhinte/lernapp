@@ -119,6 +119,7 @@ async function uploadPendingImages() {
         if (b64) await imgCall({ action: 'upload', id, data: b64 });
         setPending(getPending().filter(x => x !== id));
         state.imgUpload = { left: getPending().length };
+        if (state.screen === 'onenote' && state.imgUpload.left % 10 === 0) render();
       }
     };
     await Promise.all([worker(), worker(), worker()]);
@@ -210,4 +211,29 @@ function pickImage(callbackName, arg = '') {
   input.click();
 }
 
-setInterval(() => { if (getPending().length) uploadPendingImages(); }, 60000);
+// Alle Bilder, die in den Daten vorkommen und auf diesem Gerät liegen, aber noch nicht in der Cloud sind,
+// in die Upload-Liste nehmen. So geht nichts verloren, auch wenn die Liste auf einem Gerät fehlt.
+async function queueMissingUploads() {
+  if (!state.authUser || !supabaseClient) return;
+  const ids = new Set();
+  (state.data.onenote?.items || []).forEach(it => it.imgId && ids.add(it.imgId));
+  state.data.decks.forEach(d => { (d.pages || []).forEach(id => ids.add(id)); d.cards.forEach(c => c.img && ids.add(c.img)); });
+  (state.data.mathSets || []).forEach(m => (m.pages || []).forEach(id => ids.add(id)));
+  const local = [];
+  for (const id of ids) if (await idbGet('images', id)) local.push(id);
+  if (!local.length) return;
+  let have = [];
+  try {
+    for (let i = 0; i < local.length; i += 900) have = have.concat((await imgCall({ action: 'has', ids: local.slice(i, i + 900) })).have || []);
+  } catch (err) {
+    state.imgUpload = { left: local.length, error: err.message };
+    return;
+  }
+  const missing = local.filter(id => !have.includes(id));
+  if (missing.length) {
+    setPending([...new Set([...getPending(), ...missing])]);
+    uploadPendingImages();
+  }
+}
+
+setInterval(() => { if (getPending().length) uploadPendingImages(); else queueMissingUploads(); }, 5 * 60000);

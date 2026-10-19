@@ -306,7 +306,7 @@ async function submitAuth() {
   state.isGuest = false;
   localStorage.removeItem('guest-mode');
   await loadCloudData();
-  uploadPendingImages();
+  queueMissingUploads();
   go('home');
 }
 
@@ -336,7 +336,7 @@ async function initAuth() {
     state.authUser = data.session.user;
     state.isGuest = false;
     await loadCloudData();
-    uploadPendingImages();
+    queueMissingUploads();
     if (state.screen === 'auth') state.screen = 'home';
   } else if (state.isGuest && state.screen === 'auth') {
     state.screen = 'home';

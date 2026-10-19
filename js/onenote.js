@@ -363,6 +363,7 @@ function renderOneNote(container) {
     <input type="file" id="oneFolderInput" webkitdirectory multiple hidden onchange="scanFromInput(event)">
     <div class="setup-header">${backBtn('home')}<h3>OneNote</h3><span></span></div>
     <div class="card">${progress}${status}${scanErrors}
+      ${state.imgUpload?.left ? `<p class="note" style="${state.imgUpload.error ? 'color:var(--red)' : ''}">${state.imgUpload.error ? `Bilder-Upload hängt: ${esc(state.imgUpload.error)}` : `Bilder für das Handy werden hochgeladen, noch ${state.imgUpload.left}.`}</p>` : ''}
       <details class="solution" style="margin-bottom:0;">
         <summary>So richtest du es ein</summary>
         <ol class="solution-steps">
