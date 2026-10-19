@@ -52,7 +52,8 @@ function renderHome(container) {
   const learnedToday = !!s.daily[today];
   const due = allDueCards().length;
   const exams = state.data.exams.filter(e => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
-  const tasks = exams.flatMap(e => (e.tasks || []).filter(t => t.date <= today && !t.done).map(t => ({ exam: e, task: t }))).slice(0, 6);
+  const tasks = exams.flatMap(e => (e.tasks || []).filter(t => t.date <= today && !t.done).map(t => ({ exam: e, task: t })))
+    .sort((a, b) => (a.task.date + (a.task.time || '')).localeCompare(b.task.date + (b.task.time || ''))).slice(0, 8);
   const isNew = !state.data.decks.length && !state.data.learningHistory.length;
 
   const onboarding = isNew ? `
@@ -143,6 +144,8 @@ function renderProfile(container) {
         ${BADGES.map(b => `<div class="badge-item ${s.badges.includes(b.id) ? 'on' : ''}" title="${esc(b.desc)}"><span>${icon(b.icon, 22)}</span><small>${esc(b.name)}</small></div>`).join('')}
       </div>
     </div>
+
+    ${studySettingsHtml()}
 
     <div class="card">
       <h3 class="card-title">Untis und SCP</h3>
@@ -350,7 +353,13 @@ const hasSession = !!localStorage.getItem('sb-jxkcxfmutaxmhifgbufv-auth-token');
 state.screen = state.isGuest || hasSession ? 'home' : 'auth';
 render();
 // Erst Cloud-Stand holen, dann OneNote und Schule abrufen, sonst überschreiben sie sich gegenseitig
-initAuth().then(() => { initUntis(); initOneNote(); });
+initAuth().then(async () => {
+  rebuildAllPlans();
+  saveData();
+  await Promise.all([initUntis(), initOneNote()]);
+  autoFindTopics();
+  schedulePush();
+});
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('./sw.js').catch(() => {});

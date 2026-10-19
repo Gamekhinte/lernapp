@@ -43,40 +43,10 @@ function sourceName(src) {
   return state.data.decks.find(d => d.id === src.id)?.name || 'Kartei';
 }
 
-// Verteilt die Quellen auf die Tage bis zur Arbeit
+// Plant die Arbeit zusammen mit allen anderen auf die eingestellten Lernzeiten (siehe planner.js)
 function generatePlan(exam, oldTasks = []) {
-  const today = todayStr();
-  const n = Math.max(0, daysBetween(today, exam.date));
-  const days = Array.from({ length: n }, (_, i) => todayStr(i));
-  const tasks = [];
-  const add = (date, label, ref) => tasks.push({ id: uid(), date, label, ref, done: false });
-  const isMath = getSubject(exam.subject).kind === 'mathe';
-  const srcs = exam.sources || [];
-  const learnLabel = s => isMath ? `Üben: ${sourceName(s)}` : `Lernen: ${sourceName(s)}`;
-  const refOf = s => ({ type: s.type === 'deck' ? 'deck' : s.type, id: s.id });
-
-  if (!days.length) {
-    add(today, 'Letzte Probearbeit schreiben', { type: 'exam' });
-    return tasks;
-  }
-  const learnDays = days.length >= 3 ? days.length - 1 : days.length;
-  // 1. Runde: jeden Stoff einmal lernen
-  srcs.forEach((s, i) => add(days[Math.floor(i * learnDays / srcs.length)], learnLabel(s), refOf(s)));
-  // 2. Runde: in der zweiten Hälfte nochmal wiederholen
-  if (days.length >= 4) {
-    const start = Math.floor(days.length / 2);
-    const span = Math.max(1, days.length - start);
-    srcs.forEach((s, i) => add(days[start + Math.floor(i * span / srcs.length)], (isMath ? 'Nochmal üben: ' : 'Wiederholen: ') + sourceName(s), refOf(s)));
-  }
-  // Tägliche Wiederholung ab Tag 2
-  days.slice(1).filter(d => tasks.filter(t => t.date === d).length < 3).forEach(d => add(d, isMath ? 'Gemischte Aufgaben (10 Stück)' : 'Fällige Karten wiederholen', isMath ? { type: 'mix' } : { type: 'review', subject: exam.subject }));
-  // Probearbeiten
-  if (days.length >= 5) add(days[Math.floor(days.length / 2)], 'Probearbeit zur Halbzeit', { type: 'exam' });
-  add(days[days.length - 1], 'Probearbeit am Tag vor der Arbeit', { type: 'exam' });
-
-  // Erledigte Aufgaben behalten, wenn der Plan neu erstellt wird
-  tasks.forEach(t => { if (oldTasks.some(o => o.done && o.date === t.date && o.label === t.label)) t.done = true; });
-  return tasks.sort((a, b) => a.date.localeCompare(b.date));
+  if (oldTasks?.length && !exam.tasks?.length) exam.tasks = oldTasks;
+  return rebuildAllPlans(exam) || exam.tasks || [];
 }
 
 // ---------- Übersicht ----------
@@ -214,8 +184,8 @@ function taskRow(exam, task) {
     <div class="task-row ${task.done ? 'done' : ''}">
       <button class="check-btn ${task.done ? 'on' : ''}" onclick="togglePlanTask('${exam.id}', '${task.id}')" aria-label="Erledigt">${task.done ? icon('check', 16) : ''}</button>
       <div class="task-text">
-        <span>${esc(task.label)}</span>
-        <small>${esc(exam.title)}${task.date < todayStr() ? ' · überfällig' : ''}</small>
+        <span>${task.time ? `<b class="task-time">${esc(task.time)}</b> ` : ''}${esc(task.label)}</span>
+        <small>${esc(exam.title)}${task.minutes ? ` · ${task.minutes} Min` : ''}${task.date < todayStr() ? ' · überfällig' : ''}</small>
       </div>
       ${task.done ? '' : `<button class="btn btn-primary btn-xs" onclick="startPlanTask('${exam.id}', '${task.id}')">Los</button>`}
     </div>`;
@@ -260,6 +230,9 @@ function startPlanTask(examId, taskId) {
     });
   } else if (r.type === 'exam') {
     go('examSetup', { subject: exam.subject, examId: exam.id });
+  } else if (r.type === 'tutor') {
+    if (!requireAi()) return;
+    startTutorTopic(exam, task);
   }
 }
 
@@ -387,6 +360,7 @@ function renderExamPlan(container) {
       ${exam.note ? `<p class="note"><b>Info aus der Schule:</b> ${esc(exam.note)}</p>` : ''}
       ${results.length ? `<p class="note">Letzte Probearbeiten: ${results.map(r => `<b>${esc(r.gradeLabel)}</b>`).join(' · ')}</p>` : ''}
     </div>
+    ${topicsCardHtml(exam)}
     <div class="quick-grid two">
       <button class="btn btn-primary" onclick="go('examSetup', {subject:'${exam.subject}', examId:'${exam.id}'})">${icon('pen')} Probearbeit</button>
       <button class="btn btn-outline" onclick="openTutor('${exam.subject}')">${icon('chat')} Frage stellen</button>
@@ -396,4 +370,70 @@ function renderExamPlan(container) {
       <h3 class="group-title ${date === todayStr() ? 'today' : ''}">${dateLabel(date)}</h3>
       <div class="card tight">${tasks.map(t => taskRow(exam, t)).join('')}</div>`).join('')}
   `;
+}
+
+// ---------- Themen einer Arbeit ----------
+
+function topicsCardHtml(exam) {
+  ensureTopics(exam);
+  const from = { ka: 'aus der Klassenarbeits-Seite in OneNote', onenote: 'aus den letzten OneNote-Themen', ki: 'von der KI geschätzt' }[exam.topicsFrom] || 'aus deiner Auswahl';
+  const total = exam.topics.reduce((s, t) => s + (t.minutes || 0), 0);
+  return `
+    <div class="card">
+      <h3 class="card-title">Was drankommt</h3>
+      <p class="note" style="margin-top:0;">${exam.topics.length} Themen, zusammen ca. ${total} Min Lernzeit · ${from}</p>
+      ${exam.topics.map(t => `
+        <div class="topic-edit">
+          <div class="task-text"><span>${esc(t.title)}</span>${t.summary ? `<small>${esc(t.summary)}</small>` : ''}</div>
+          <select onchange="setTopicMinutes('${exam.id}', '${t.id}', Number(this.value))">${[10, 15, 20, 30, 45, 60, 90].map(v => `<option value="${v}" ${t.minutes === v ? 'selected' : ''}>${v} Min</option>`).join('')}</select>
+          <button class="icon-btn small" onclick="removeTopic('${exam.id}', '${t.id}')" aria-label="Entfernen">${icon('close', 14)}</button>
+        </div>`).join('') || '<p class="note">Noch keine Themen.</p>'}
+      <div class="row-2" style="margin-top:12px;">
+        <button class="btn btn-outline btn-sm" onclick="addTopic('${exam.id}')">${icon('plus', 14)} Thema</button>
+        <button class="btn btn-primary btn-sm" onclick="findTopicsNow('${exam.id}')">${icon('search', 14)} Stoff suchen</button>
+      </div>
+    </div>`;
+}
+
+async function findTopicsNow(examId) {
+  const exam = state.data.exams.find(e => e.id === examId);
+  if (!exam || !requireAi()) return;
+  renderLoading('Stoff wird gesucht', 'OneNote, Untis und SCP werden durchgesehen.');
+  await findTopicsWithAi(exam);
+  go('examPlan', { id: examId });
+}
+
+function setTopicMinutes(examId, topicId, minutes) {
+  const exam = state.data.exams.find(e => e.id === examId);
+  const t = exam?.topics?.find(x => x.id === topicId);
+  if (!t) return;
+  t.minutes = minutes;
+  touch(exam);
+  rebuildAllPlans();
+  saveData();
+  render();
+}
+
+function removeTopic(examId, topicId) {
+  const exam = state.data.exams.find(e => e.id === examId);
+  if (!exam) return;
+  exam.topics = exam.topics.filter(t => t.id !== topicId);
+  if (!exam.topics.length) exam.topicsFrom = exam.topicsFrom || 'manuell';
+  touch(exam);
+  rebuildAllPlans();
+  saveData();
+  render();
+}
+
+function addTopic(examId) {
+  const exam = state.data.exams.find(e => e.id === examId);
+  const title = prompt('Welches Thema?');
+  if (!exam || !title?.trim()) return;
+  ensureTopics(exam);
+  exam.topics.push({ id: 'm' + uid().slice(0, 6), title: title.trim().slice(0, 80), minutes: 30, how: 'Verstehen', refs: [], summary: '' });
+  exam.topicsFrom = exam.topicsFrom || 'manuell';
+  touch(exam);
+  rebuildAllPlans();
+  saveData();
+  render();
 }

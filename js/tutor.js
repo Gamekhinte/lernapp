@@ -19,7 +19,7 @@ function saveTutorChat() {
   const t = state.tutor;
   if (!t) return;
   const chats = loadTutorChats();
-  chats[t.subject] = t.messages.slice(-40).map(m => ({ role: m.role, text: m.text, hadImage: !!m.image || m.hadImage }));
+  chats[t.subject] = t.messages.slice(-40).map(m => ({ role: m.role, text: m.text, context: m.context, hadImage: !!m.image || m.hadImage }));
   try { localStorage.setItem(TUTOR_KEY, JSON.stringify(chats)); } catch (e) {}
 }
 
@@ -35,11 +35,12 @@ function openTutor(subjectId) {
   go('tutor');
 }
 
-function explainWithTutor(text, subjectId, returnTo) {
+// context geht nur an die KI, im Chat steht nur text
+function explainWithTutor(text, subjectId, returnTo, context = '') {
   ensureTutor(subjectId || 'mathe');
   state.tutor.returnTo = returnTo;
   go('tutor');
-  sendTutor(text);
+  sendTutor(text, context);
 }
 
 function tutorSystem(subject) {
@@ -131,14 +132,14 @@ async function attachTutorPhoto(e) {
   render();
 }
 
-async function sendTutor(preset) {
+async function sendTutor(preset, context = '') {
   const t = state.tutor;
   if (!t || t.busy) return;
   const input = document.getElementById('tutorInput');
   const text = (preset ?? input?.value ?? '').trim();
   if (!text && !t.image) return;
   if (!requireAi()) return;
-  t.messages.push({ role: 'user', text: text || 'Hilf mir bitte bei dieser Aufgabe.', image: t.image || null });
+  t.messages.push({ role: 'user', text: text || 'Hilf mir bitte bei dieser Aufgabe.', image: t.image || null, context: context || undefined });
   t.image = null;
   t.busy = true;
   unlockBadge('tutor');
@@ -146,7 +147,9 @@ async function sendTutor(preset) {
   try {
     const history = t.messages.slice(-16).map((m, i, arr) => ({
       role: m.role,
-      text: m.text,
+      text: m.context ? `${m.context}
+
+${m.text}` : m.text,
       images: m.image && i >= arr.length - 4 ? [m.image] : []
     }));
     const reply = await aiCall({ system: tutorSystem(getSubject(t.subject)), messages: history });

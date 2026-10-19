@@ -92,6 +92,7 @@ async function syncUntis({ silent = false } = {}) {
     if (fresh.length && silent) toast(`${dateLabel(fresh[0].date)} fällt ${fresh[0].subjectLong || fresh[0].subject} aus`);
     else if (added) toast(`${added} Arbeit${added > 1 ? 'en' : ''} aus Untis eingetragen`);
     else if (!silent) toast('Untis ist aktuell.');
+    if (added) autoFindTopics();
     return true;
   } catch (err) {
     u.lastError = err.message;

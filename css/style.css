@@ -671,3 +671,12 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .school-pending .task-row select { width: 46%; font-size: 13px; padding: 6px 8px; box-shadow: 2px 2px 0 var(--shadow); }
 
 .scan-progress { border: 2px solid var(--ink); border-radius: 4px; background: var(--paper); padding: 8px 10px; margin-bottom: 12px; }
+
+/* Lernzeiten und Themen */
+.study-row { display: grid; grid-template-columns: 64px 1fr auto 1fr; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--rule); font-size: 14px; }
+.study-row:last-of-type { border-bottom: none; }
+.study-row.off input[type=time] { opacity: .4; }
+.study-row input[type=time] { padding: 6px 8px; border: 2px solid var(--ink); border-radius: 3px; background: var(--paper-card); color: var(--ink); font-family: 'Space Mono', monospace; font-size: 14px; min-width: 0; width: 100%; -webkit-appearance: none; appearance: none; }
+.topic-edit { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px dashed var(--rule); }
+.topic-edit select { width: 92px; flex-shrink: 0; font-size: 13px; padding: 6px; box-shadow: 2px 2px 0 var(--shadow); }
+.task-time { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--accent); margin-right: 2px; }

@@ -1,10 +1,10 @@
 // Offline-Cache: App-Dateien zuerst aus dem Cache, Updates im Hintergrund.
-const CACHE = 'lernapp-v12';
+const CACHE = 'lernapp-v14';
 const FILES = [
-  './', './index.html', './manifest.json', './css/style.css?v=12',
-  './js/data.js?v=12', './js/store.js?v=12', './js/sync.js?v=12', './js/ui.js?v=12', './js/icons.js?v=12', './js/images.js?v=12', './js/ai.js?v=12', './js/gamify.js?v=12',
-  './js/math.js?v=12', './js/decks.js?v=12', './js/mathview.js?v=12', './js/exam.js?v=12',
-  './js/tutor.js?v=12', './js/plan.js?v=12', './js/onenote.js?v=12', './js/untis.js?v=12', './js/scp.js?v=12', './js/app.js?v=12',
+  './', './index.html', './manifest.json', './css/style.css?v=14',
+  './js/data.js?v=14', './js/store.js?v=14', './js/sync.js?v=14', './js/ui.js?v=14', './js/icons.js?v=14', './js/images.js?v=14', './js/ai.js?v=14', './js/gamify.js?v=14',
+  './js/math.js?v=14', './js/decks.js?v=14', './js/mathview.js?v=14', './js/exam.js?v=14',
+  './js/tutor.js?v=14', './js/plan.js?v=14', './js/planner.js?v=14', './js/push.js?v=14', './js/onenote.js?v=14', './js/untis.js?v=14', './js/scp.js?v=14', './js/app.js?v=14',
   './icons/icon-192.png', './icons/apple-touch-icon.png'
 ];
 
@@ -37,4 +37,20 @@ self.addEventListener('fetch', e => {
       return hit || net;
     })
   );
+});
+
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) { d = { title: 'Lernapp', body: e.data?.text() || '' }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'Lernapp', {
+    body: d.body || '', icon: './icons/icon-192.png', badge: './icons/icon-192.png', tag: d.title || 'lernapp'
+  }));
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    const open = list.find(c => c.url.includes('/lernapp/'));
+    return open ? open.focus() : self.clients.openWindow('./');
+  }));
 });

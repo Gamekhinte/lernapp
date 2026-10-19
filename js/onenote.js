@@ -124,7 +124,7 @@ async function decodeCandidate(cand) {
   return null;
 }
 
-const ONE_TEXT_JUNK = /resolutionId|ifndf|[<>{}]|Calibri|Aptos|PageTitle|PageDateTime|Class Notebook|\.(png|emf|jpg|docx|xlsx|pdf)\b|S::|@|SFUI|-apple-system|Unbenanntes Bild/i;
+const ONE_TEXT_JUNK = /resolutionId|ifndf|HYPERLINK|file:|[A-Z]:\\|Exported|[<>{}]|Calibri|Aptos|PageTitle|PageDateTime|Class Notebook|\.(png|emf|jpg|docx|xlsx|pdf)\b|S::|@|SFUI|-apple-system|Unbenanntes Bild/i;
 
 function extractText(u8) {
   const seen = new Set(), lines = [];
@@ -222,7 +222,10 @@ async function scanOneNote(source, { interactive = false } = {}) {
     state.onenoteProgress = null;
     saveData();
   }
-  if (added) toast(`${added} neue Seite${added > 1 ? 'n' : ''} aus OneNote`);
+  if (added) {
+    toast(`${added} neue Seite${added > 1 ? 'n' : ''} aus OneNote`);
+    autoFindTopics();
+  }
   return added;
 }
 

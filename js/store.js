@@ -144,6 +144,7 @@ function saveData() {
     toast('Speicher voll. Bitte alte Karteien löschen.');
   }
   queueCloudSync();
+  if (typeof schedulePushSoon === 'function') schedulePushSoon();
 }
 
 function exportBackup() {

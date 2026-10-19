@@ -47,6 +47,7 @@ const ICON_PATHS = {
   cards: '<rect x="3" y="7" width="13" height="14" rx="1"/><path d="M7 7V4h13v14h-4"/>',
   choice: '<circle cx="6" cy="7" r="2"/><circle cx="6" cy="17" r="2"/><path d="M11 7h9M11 17h9"/>',
   question: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14M12 17v.5"/>',
+  bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
   medal: '<circle cx="12" cy="15" r="5"/><path d="M8 3l2 7M16 3l-2 7M9 3h6"/>'
 };
 

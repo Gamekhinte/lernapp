@@ -58,6 +58,7 @@ async function syncScp({ silent = false } = {}) {
     saveData();
     if (added) toast(`${added} Arbeit${added > 1 ? 'en' : ''} aus dem SCP eingetragen`);
     else if (!silent) toast('SCP ist aktuell.');
+    if (added) autoFindTopics();
     return true;
   } catch (err) {
     s.lastError = err.message;
