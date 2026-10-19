@@ -10,6 +10,11 @@ const SUBJECT_WORDS = [
   [/geschichte/i, 'geschichte'], [/bio/i, 'biologie'], [/erdkunde|geograf|geograph/i, 'erdkunde']
 ];
 
+// Alles von einer Seite wie "Arbeiten" oder "Klausurplan" ist eine Arbeit, auch ohne das Wort im Text
+function isScpExam(e) {
+  return EXAM_WORDS.test(e.text) || EXAM_WORDS.test(e.source || '');
+}
+
 function scpData() {
   if (!state.data.scp) state.data.scp = {};
   const s = state.data.scp;
@@ -71,7 +76,7 @@ function importScpExams() {
   const ignored = untisData().ignoredExams;
   let added = 0;
   s.entries.forEach(e => {
-    if (e.date < today || !EXAM_WORDS.test(e.text)) return;
+    if (e.date < today || !isScpExam(e)) return;
     const subjectId = scpSubject(e.text);
     if (!subjectId) return;
     const id = 'scp-' + e.date + '-' + subjectId;
@@ -83,7 +88,7 @@ function importScpExams() {
       twin.scpId = id;
       return;
     }
-    const kind = (e.text.match(EXAM_WORDS) || ['Arbeit'])[0];
+    const kind = (e.text.match(EXAM_WORDS) || ['Arbeit'])[0].replace(/^ka$/i, 'Klassenarbeit');
     const exam = {
       id: uid(), scpId: id, subject: subjectId, title: `${getSubject(subjectId).name}: ${kind[0].toUpperCase() + kind.slice(1)}`,
       date: e.date, note: e.text, sources: defaultSourcesFor(subjectId), createdAt: new Date().toISOString()
@@ -111,7 +116,7 @@ function scpCardHtml() {
       </div>`;
   }
   const upcoming = s.entries.filter(e => e.date >= todayStr()).sort((a, b) => a.date.localeCompare(b.date));
-  const exams = upcoming.filter(e => EXAM_WORDS.test(e.text));
+  const exams = upcoming.filter(isScpExam);
   const lastSync = s.lastSync ? new Date(s.lastSync).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' }) : 'noch nie';
   return `
     <div class="card">
@@ -128,7 +133,7 @@ function scpCardHtml() {
       </div>
       ${upcoming.length ? `<div style="margin-top:12px;">${upcoming.slice(0, 15).map(e => {
         const subj = scpSubject(e.text);
-        return `<div class="task-row"><div class="task-text"><span>${esc(e.text)}</span><small>${dateLabel(e.date)}${EXAM_WORDS.test(e.text) ? ' · Arbeit' : ''}${subj ? ' · ' + esc(getSubject(subj).name) : ''}</small></div></div>`;
+        return `<div class="task-row"><div class="task-text"><span>${esc(e.text)}</span><small>${dateLabel(e.date)}${isScpExam(e) ? ' · Arbeit' : ''}${subj ? ' · ' + esc(getSubject(subj).name) : ''}</small></div></div>`;
       }).join('')}</div>` : ''}
       ${s.lastSync ? `<details class="solution"><summary>Gefundene Seiten im SCP</summary><p class="note">Durchsucht: ${esc((s.pages || []).join(', ') || 'nur die Startseite')}</p><p class="note">Menü: ${esc((s.menu || []).join(', '))}</p></details>` : ''}
     </div>`;

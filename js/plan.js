@@ -81,14 +81,113 @@ function generatePlan(exam, oldTasks = []) {
 
 // ---------- Übersicht ----------
 
-function renderPlan(container) {
+// Arbeiten aus Untis und SCP, die (noch) nicht im Plan stehen, z. B. weil das Fach nicht erkannt wurde
+function schoolPendingExams() {
   const today = todayStr();
+  const ignored = untisData().ignoredExams;
+  const list = [];
+  untisData().exams.forEach(e => {
+    if (e.date < today || ignored.includes(e.id) || state.data.exams.some(x => x.untisId === e.id)) return;
+    list.push({ key: 'u:' + e.id, date: e.date, text: [e.subject, e.type || e.name, e.text].filter(Boolean).join(' · '), subject: untisSubject(e.subject), from: 'Untis' });
+  });
+  scpData().entries.forEach(e => {
+    if (e.date < today || !isScpExam(e)) return;
+    const subj = scpSubject(e.text);
+    const id = 'scp-' + e.date + '-' + (subj || 'x');
+    if (ignored.includes(id) || state.data.exams.some(x => x.scpId === id || (subj && x.subject === subj && Math.abs(daysBetween(x.date, e.date)) <= 1))) return;
+    list.push({ key: 's:' + e.date + ':' + e.text.slice(0, 40), date: e.date, text: e.text, subject: subj, from: 'SCP' });
+  });
+  return list.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function takeSchoolExam(key) {
+  const item = schoolPendingExams().find(i => i.key === key);
+  if (!item) return;
+  const subjectId = document.getElementById('pend-' + btoa(unescape(encodeURIComponent(key))).replace(/[^a-z0-9]/gi, ''))?.value || item.subject;
+  if (!subjectId) return toast('Bitte erst das Fach auswählen.');
+  const exam = {
+    id: uid(), subject: subjectId, title: `${getSubject(subjectId).name}: Arbeit`, date: item.date, note: item.text,
+    sources: defaultSourcesFor(subjectId), createdAt: new Date().toISOString()
+  };
+  if (key.startsWith('u:')) exam.untisId = key.slice(2);
+  else exam.scpId = 'scp-' + item.date + '-' + (item.subject || 'x');
+  exam.tasks = generatePlan(exam);
+  state.data.exams.push(exam);
+  saveData();
+  toast('In den Lernplan übernommen.');
+  render();
+}
+
+function ignoreSchoolExam(key) {
+  const item = schoolPendingExams().find(i => i.key === key);
+  if (!item) return;
+  untisData().ignoredExams.push(key.startsWith('u:') ? key.slice(2) : 'scp-' + item.date + '-' + (item.subject || 'x'));
+  saveData();
+  render();
+}
+
+function planTabs(view) {
+  return `<div class="toggle-row">
+    <div class="toggle-btn ${view === 'lern' ? 'active' : ''}" onclick="go('plan', {view:'lern'})">Lernplan</div>
+    <div class="toggle-btn ${view === 'stunden' ? 'active' : ''}" onclick="go('plan', {view:'stunden'})">Stundenplan</div>
+  </div>`;
+}
+
+function renderTimetable(container) {
+  const u = untisData();
+  const days = [...new Set(u.timetable.map(l => l.date))].filter(d => d >= todayStr()).slice(0, 10);
+  if (!u.school || !days.length) {
+    container.innerHTML = `${planTabs('stunden')}
+      <div class="card center">
+        <p style="margin:4px 0 6px;"><b>${u.school ? 'Noch kein Stundenplan abgerufen.' : 'Untis ist noch nicht verbunden.'}</b></p>
+        <p class="note" style="margin-bottom:14px;">Der Stundenplan kommt aus Untis, mit Ausfall und Vertretung.</p>
+        <button class="btn btn-primary" onclick="${u.school ? 'syncUntis()' : "go('untis')"}">${u.school ? 'Jetzt abrufen' : 'Untis verbinden'}</button>
+      </div>`;
+    return;
+  }
+  const day = days.includes(state.params.day) ? state.params.day : (untisDayToShow() && days.includes(untisDayToShow()) ? untisDayToShow() : days[0]);
+  const hw = u.homework.filter(h => h.due === day && !h.done && !u.hwDone[h.id]);
+  const exams = state.data.exams.filter(e => e.date === day);
+  container.innerHTML = `${planTabs('stunden')}
+    <div class="day-chips">${days.map(d => {
+      const dt = new Date(d + 'T12:00:00');
+      const cancel = u.timetable.some(l => l.date === d && l.cancelled);
+      return `<button class="day-chip ${d === day ? 'active' : ''} ${cancel ? 'has-cancel' : ''}" onclick="go('plan', {view:'stunden', day:'${d}'})"><b>${WEEKDAYS[dt.getDay()]}</b><small>${dt.getDate()}.${dt.getMonth() + 1}.</small></button>`;
+    }).join('')}</div>
+    ${exams.map(e => `<div class="exam-banner soon" onclick="go('examPlan', {id:'${e.id}'})"><div style="flex:1;"><b>${esc(e.title)}</b><p class="note" style="margin:2px 0 0;">An diesem Tag</p></div><span class="chev">›</span></div>`).join('')}
+    <div class="card tight"><p class="mini-label day-label">${dateLabel(day)}</p>${lessonRowsHtml(day)}</div>
+    ${hw.length ? `<h3 class="group-title">Hausaufgaben bis dahin</h3><div class="card tight">${hw.map(h => `
+      <div class="task-row">
+        <button class="check-btn" onclick="toggleHomework('${esc(h.id)}')" aria-label="Erledigt"></button>
+        <div class="task-text"><span>${esc(h.text)}</span><small>${esc(h.subject)}</small></div>
+      </div>`).join('')}</div>` : ''}
+    <p class="note center">Zuletzt abgerufen: ${u.lastSync ? new Date(u.lastSync).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' }) : 'noch nie'}</p>`;
+}
+
+function renderPlan(container) {
+  if (state.params.view === 'stunden') return renderTimetable(container);
+  const today = todayStr();
+  const pending = schoolPendingExams();
+  const pendId = key => 'pend-' + btoa(unescape(encodeURIComponent(key))).replace(/[^a-z0-9]/gi, '');
   const upcoming = state.data.exams.filter(e => e.date >= today).sort((a, b) => a.date.localeCompare(b.date));
   const past = state.data.exams.filter(e => e.date < today).sort((a, b) => b.date.localeCompare(a.date));
   const todayTasks = upcoming.flatMap(e => (e.tasks || []).filter(t => t.date <= today && !t.done).map(t => ({ exam: e, task: t })));
 
   container.innerHTML = `
-    <h2 class="page-title">Lernplan</h2>
+    ${planTabs('lern')}
+    ${pending.length ? `
+      <div class="card school-pending">
+        <h3 class="card-title">Aus der Schule, noch nicht im Plan</h3>
+        ${pending.map(i => `
+          <div class="task-row">
+            <div class="task-text"><span>${esc(i.text)}</span><small>${dateLabel(i.date)} · ${i.from}</small></div>
+            <select id="${pendId(i.key)}"><option value="">Fach?</option>${getSubjects().map(s => `<option value="${s.id}" ${i.subject === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>
+          </div>
+          <div class="row-2" style="margin:2px 0 10px;">
+            <button class="btn btn-outline btn-xs" style="width:100%;" onclick='ignoreSchoolExam(${jsArg(i.key)})'>Ignorieren</button>
+            <button class="btn btn-primary btn-xs" style="width:100%;" onclick='takeSchoolExam(${jsArg(i.key)})'>Übernehmen</button>
+          </div>`).join('')}
+      </div>` : ''}
     ${todayTasks.length ? `
       <div class="card">
         <h3 class="card-title">Heute dran</h3>
