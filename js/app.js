@@ -349,8 +349,8 @@ applyTheme();
 const hasSession = !!localStorage.getItem('sb-jxkcxfmutaxmhifgbufv-auth-token');
 state.screen = state.isGuest || hasSession ? 'home' : 'auth';
 render();
-initAuth().then(initUntis);
-initOneNote();
+// Erst Cloud-Stand holen, dann OneNote und Schule abrufen, sonst überschreiben sie sich gegenseitig
+initAuth().then(() => { initUntis(); initOneNote(); });
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('./sw.js').catch(() => {});

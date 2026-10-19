@@ -197,7 +197,7 @@ async function syncCloudData() {
 // Änderungen vom anderen Gerät holen, wenn die App wieder in den Vordergrund kommt
 const SAFE_RENDER = ['home', 'subjects', 'subject', 'plan', 'profile', 'examPlan', 'onenote', 'untis', 'history'];
 async function pullCloud() {
-  if (!state.authUser || !supabaseClient || !state.cloudReady || syncing) return;
+  if (!state.authUser || !supabaseClient || !state.cloudReady || syncing || state.onenoteScanning) return;
   try {
     const head = await fetchCloud(false);
     if (!head || head.updated_at === state.cloudBase) return;

@@ -162,49 +162,65 @@ function extractText(u8) {
 async function scanOneNote(source, { interactive = false } = {}) {
   if (state.onenoteScanning) return 0;
   state.onenoteScanning = true;
-  const on = state.data.onenote;
+  // Immer frisch nachschlagen: Während des Durchlaufs kann der Cloud-Abgleich state.data austauschen
+  const on = () => state.data.onenote;
   let added = 0;
+  const errors = [];
+  state.onenoteProgress = { done: 0, total: 0, label: 'Dateien werden gesucht' };
   try {
     if (interactive) renderLoading('OneNote wird durchsucht', 'Beim ersten Mal kann das ein paar Minuten dauern.');
     const sections = await collectOneFiles(source);
     sections.forEach(s => {
-      if (!on.notebooks[s.notebook]) {
+      if (!on().notebooks[s.notebook]) {
         const subject = guessSubject(s.notebook);
-        on.notebooks[s.notebook] = { subject, include: !!subject };
+        on().notebooks[s.notebook] = { subject, include: !!subject };
       }
     });
-    const todo = sections.filter(s => on.notebooks[s.notebook].include && on.sections[s.key] !== `${s.file.size}-${s.file.lastModified}`);
+    const todo = sections.filter(s => on().notebooks[s.notebook].include && on().sections[s.key] !== `${s.file.size}-${s.file.lastModified}`);
+    state.onenoteProgress.total = todo.length;
     for (let n = 0; n < todo.length; n++) {
       const s = todo[n];
-      if (interactive) setLoadingLabel(`Abschnitt ${n + 1} von ${todo.length}: ${notebookLabel(s.notebook)}, ${s.section}`);
-      const u8 = new Uint8Array(await s.file.arrayBuffer());
-      const text = extractText(u8);
-      if (text) on.texts[s.key] = text;
-      for (const cand of extractImageCandidates(u8)) {
-        const hash = await hashBytes(cand.parts[0].subarray(0, Math.min(cand.parts[0].length, 400000)));
-        if (on.seen[hash]) continue;
-        const img = await decodeCandidate(cand);
-        on.seen[hash] = 1;
-        if (!img || img.skip) continue;
-        const imgId = await putImage(img.b64);
-        if (on.items.some(it => it.imgId === imgId)) continue;
-        on.items.push({
-          id: uid(), imgId, key: s.key, notebook: s.notebook, section: s.section,
-          subject: on.notebooks[s.notebook].subject, status: 'new', addedAt: todayStr(), date: s.date
-        });
-        added++;
+      const label = `${notebookLabel(s.notebook)}, ${s.section}`;
+      state.onenoteProgress = { done: n, total: todo.length, label };
+      if (interactive) setLoadingLabel(`Abschnitt ${n + 1} von ${todo.length}: ${label}`);
+      else if (state.screen === 'onenote' && n % 3 === 0) render();
+      // Ein kaputter Abschnitt soll den Rest nicht aufhalten
+      try {
+        const u8 = new Uint8Array(await s.file.arrayBuffer());
+        const text = extractText(u8);
+        if (text) on().texts[s.key] = text;
+        for (const cand of extractImageCandidates(u8)) {
+          const hash = await hashBytes(cand.parts[0].subarray(0, Math.min(cand.parts[0].length, 400000)));
+          if (on().seen[hash]) continue;
+          const img = await decodeCandidate(cand);
+          on().seen[hash] = 1;
+          if (!img || img.skip) continue;
+          const imgId = await putImage(img.b64);
+          if (on().items.some(it => it.imgId === imgId)) continue;
+          on().items.push({
+            id: uid(), imgId, key: s.key, notebook: s.notebook, section: s.section,
+            subject: on().notebooks[s.notebook].subject, status: 'new', addedAt: todayStr(), date: s.date
+          });
+          added++;
+        }
+        on().sections[s.key] = `${s.file.size}-${s.file.lastModified}`;
+      } catch (err) {
+        console.error('OneNote-Abschnitt', s.key, err);
+        errors.push(`${label}: ${err.message}`);
       }
-      on.sections[s.key] = `${s.file.size}-${s.file.lastModified}`;
       // Zwischendurch speichern, damit bei langen Läufen nichts verloren geht
       if (n % 5 === 4) saveData();
     }
-    on.lastScan = new Date().toISOString();
-    saveData();
   } catch (err) {
     console.error('OneNote-Import', err);
+    errors.push(err.message);
     toast('OneNote konnte nicht gelesen werden: ' + err.message);
   } finally {
+    on().lastScan = new Date().toISOString();
+    on().lastErrors = errors.slice(0, 5);
     state.onenoteScanning = false;
+    state.onenoteProgress = null;
+    saveData();
   }
   if (added) toast(`${added} neue Seite${added > 1 ? 'n' : ''} aus OneNote`);
   return added;
@@ -294,6 +310,15 @@ function renderOneNote(container) {
   const subjectsWithItems = [...new Set(newOneNoteItems().map(it => it.subject))];
   const lastScan = on.lastScan ? new Date(on.lastScan).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' }) : 'noch nie';
 
+  const prog = state.onenoteProgress;
+  const progress = state.onenoteScanning && prog ? `
+    <div class="scan-progress">
+      <div class="xp-row"><span>Wird durchsucht</span><span>${prog.done} von ${prog.total || '?'}</span></div>
+      <div class="bar"><div style="width:${prog.total ? Math.round(prog.done / prog.total * 100) : 5}%"></div></div>
+      <p class="note">${esc(prog.label || '')}</p>
+    </div>` : '';
+  const scanErrors = (on.lastErrors || []).length && !state.onenoteScanning
+    ? `<p class="note" style="color:var(--red)">Nicht lesbar: ${esc(on.lastErrors.join('; '))}</p>` : '';
   const status = canPickFolder
     ? (state.onenoteHandle
       ? `<p class="note" style="margin-top:0;">Verbunden mit <b>${esc(on.folderName || state.onenoteHandle.name)}</b> · zuletzt geprüft ${esc(lastScan)}. Wird bei jedem Öffnen und alle 30 Minuten geprüft.</p>
@@ -333,7 +358,7 @@ function renderOneNote(container) {
   container.innerHTML = `
     <input type="file" id="oneFolderInput" webkitdirectory multiple hidden onchange="scanFromInput(event)">
     <div class="setup-header">${backBtn('home')}<h3>OneNote</h3><span></span></div>
-    <div class="card">${status}
+    <div class="card">${progress}${status}${scanErrors}
       <details class="solution" style="margin-bottom:0;">
         <summary>So richtest du es ein</summary>
         <ol class="solution-steps">

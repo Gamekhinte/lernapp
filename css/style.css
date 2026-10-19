@@ -669,3 +669,5 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .day-chip.active small { color: var(--paper); opacity: .8; }
 .day-chip.has-cancel { border-color: var(--red); }
 .school-pending .task-row select { width: 46%; font-size: 13px; padding: 6px 8px; box-shadow: 2px 2px 0 var(--shadow); }
+
+.scan-progress { border: 2px solid var(--ink); border-radius: 4px; background: var(--paper); padding: 8px 10px; margin-bottom: 12px; }
