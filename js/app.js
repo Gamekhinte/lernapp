@@ -226,6 +226,7 @@ function renderAuth(container) {
       <input id="authPassword" type="password" autocomplete="${register ? 'new-password' : 'current-password'}" placeholder="Mindestens 6 Zeichen" onkeydown="if(event.key==='Enter' && state.authMode==='login') submitAuth()">
       ${register ? `<label class="field-label" style="margin-top:10px;">Passwort wiederholen</label><input id="authPasswordConfirm" type="password" autocomplete="new-password">` : ''}
       ${state.authMessage ? `<p class="auth-msg ${state.authMessageType === 'success' ? 'ok' : ''}">${esc(state.authMessage)}</p>` : ''}
+      ${state.pendingEmail && !register ? `<button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="resendConfirmation()">Mail nochmal schicken</button>` : ''}
       <button class="btn btn-primary" style="margin-top:16px;" onclick="submitAuth()">${register ? 'Registrieren' : 'Anmelden'}</button>
       <button class="btn btn-outline" style="margin-top:10px;" onclick="toggleAuthMode()">${register ? 'Schon ein Konto? Anmelden' : 'Neu hier? Konto erstellen'}</button>
       <button class="btn btn-outline" style="margin-top:10px;" onclick="startGuestMode()">Ohne Konto loslegen</button>
@@ -261,6 +262,7 @@ async function submitAuth() {
     return render();
   }
   const email = document.getElementById('authEmail')?.value.trim();
+  state.pendingEmail = null;
   const password = document.getElementById('authPassword')?.value;
   const confirmation = document.getElementById('authPasswordConfirm')?.value;
   state.authMessageType = '';
@@ -283,8 +285,16 @@ async function submitAuth() {
   }
   if (!result.data.session) {
     state.authMode = 'login';
-    state.authMessageType = 'success';
-    state.authMessage = 'E-Mail gesendet! Öffne den Bestätigungslink und melde dich danach hier an.';
+    state.pendingEmail = email;
+    // Supabase meldet bei schon vorhandenen Konten Erfolg, schickt aber keine Mail (identities ist dann leer)
+    if (result.data.user && Array.isArray(result.data.user.identities) && result.data.user.identities.length === 0) {
+      state.authMessageType = '';
+      state.authMessage = 'Mit dieser E-Mail gibt es schon ein Konto, zum Beispiel vom Voc-Trainer. Einfach hier mit dem alten Passwort anmelden.';
+      state.pendingEmail = null;
+    } else {
+      state.authMessageType = 'success';
+      state.authMessage = 'Bestätigungs-Mail ist unterwegs. Link öffnen, dann hier anmelden. Auch im Spam nachschauen.';
+    }
     return render();
   }
   state.authUser = result.data.user;
@@ -293,6 +303,19 @@ async function submitAuth() {
   await loadCloudData();
   uploadPendingImages();
   go('home');
+}
+
+async function resendConfirmation() {
+  const email = state.pendingEmail;
+  if (!email || !supabaseClient) return;
+  const confirmPage = new URL(window.location.href);
+  confirmPage.search = '?confirmed=1';
+  const { error } = await supabaseClient.auth.resend({ type: 'signup', email, options: { emailRedirectTo: confirmPage.toString() } });
+  state.authMessageType = error ? '' : 'success';
+  state.authMessage = error
+    ? (/rate|seconds/i.test(error.message) ? 'Gerade wurden zu viele Mails verschickt. In ein paar Minuten nochmal probieren.' : error.message)
+    : 'Mail nochmal geschickt an ' + email + '.';
+  render();
 }
 
 async function initAuth() {
