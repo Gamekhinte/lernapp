@@ -67,27 +67,70 @@ const NAV = [
 // Bildschirme, in denen die Leiste unten stört
 const FOCUS_SCREENS = ['auth', 'practice', 'mathRun', 'exam', 'loading'];
 
+// Wie tief ein Bildschirm liegt: tiefer = von rechts reinschieben, flacher = zurück nach links
+const SCREEN_DEPTH = {
+  home: 0, subjects: 0, plan: 0, tutor: 0, profile: 0,
+  subject: 1, examPlan: 1, history: 1, onenote: 1, untis: 1,
+  deckSetup: 2, examSetup: 2, examEdit: 2,
+  deckEdit: 3, practice: 3, mathRun: 3, exam: 3, summary: 4
+};
+
+function navDirection(from, to) {
+  const fi = NAV.findIndex(n => n.screen === from), ti = NAV.findIndex(n => n.screen === to);
+  if (fi !== -1 && ti !== -1) return ti > fi ? 'right' : ti < fi ? 'left' : 'fade';
+  const a = SCREEN_DEPTH[from] ?? 1, b = SCREEN_DEPTH[to] ?? 1;
+  return b > a ? 'right' : b < a ? 'left' : 'fade';
+}
+
+const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
 function go(screen, params = {}) {
-  state.screen = screen;
-  state.params = params;
-  closeModal();
-  render();
-  window.scrollTo(0, 0);
+  const from = state.screen;
+  const same = from === screen && JSON.stringify(state.params || {}) === JSON.stringify(params || {});
+  const update = () => {
+    state.screen = screen;
+    state.params = params;
+    closeModal();
+    render();
+    window.scrollTo(0, 0);
+  };
+  if (same || reduceMotion || from === 'auth') return update();
+  const dir = from === 'loading' ? 'fade' : navDirection(from, screen);
+  if (document.startViewTransition) {
+    document.documentElement.dataset.nav = dir;
+    document.startViewTransition(update);
+  } else {
+    update();
+    // Ersatz für Browser ohne View Transitions
+    const app = document.getElementById('app');
+    app.classList.remove('anim-left', 'anim-right', 'anim-fade');
+    void app.offsetWidth;
+    app.classList.add('anim-' + dir);
+  }
 }
 
 function renderNav() {
   const nav = document.getElementById('bottomNav');
   if (!nav) return;
-  if (FOCUS_SCREENS.includes(state.screen)) { nav.innerHTML = ''; nav.hidden = true; return; }
+  if (FOCUS_SCREENS.includes(state.screen)) { nav.hidden = true; return; }
   nav.hidden = false;
   const active = {
     subject: 'subjects', deckEdit: 'subjects', deckSetup: 'subjects', summary: 'home', mathTopic: 'subjects',
     examSetup: 'home', examResult: 'home', onenote: 'home', untis: 'profile', examEdit: 'plan', examPlan: 'plan', history: 'profile'
   }[state.screen] || state.screen;
-  nav.innerHTML = NAV.map(n => `
-    <button class="nav-btn ${active === n.screen ? 'active' : ''}" onclick="go('${n.screen}')" aria-label="${n.label}">
-      <span class="nav-icon">${icon(n.icon, 22)}</span><span class="nav-label">${n.label}</span>
-    </button>`).join('');
+  // Leiste nur einmal bauen, danach nur umschalten, damit der Strich wandern kann
+  if (!nav.dataset.built) {
+    nav.innerHTML = `<div class="nav-inner">${NAV.map(n => `
+      <button class="nav-btn" data-screen="${n.screen}" onclick="go('${n.screen}')" aria-label="${n.label}">
+        <span class="nav-icon">${icon(n.icon, 22)}</span><span class="nav-label">${n.label}</span>
+      </button>`).join('')}<span class="nav-ink"></span></div>`;
+    nav.dataset.built = '1';
+  }
+  const idx = NAV.findIndex(n => n.screen === active);
+  nav.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.screen === active));
+  const ink = nav.querySelector('.nav-ink');
+  ink.style.setProperty('--i', idx);
+  ink.style.opacity = idx === -1 ? '0' : '1';
 }
 
 function renderHeader() {
