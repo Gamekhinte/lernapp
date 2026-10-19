@@ -186,24 +186,10 @@ function untisHomeCards() {
   let html = '';
   const day = untisDayToShow();
   if (day) {
-    // Mehrere Einträge pro Stunde (z. B. Kurse) zusammenfassen
-    const lessons = u.timetable.filter(l => l.date === day);
-    const seen = new Set();
-    const rows = lessons.filter(l => { const k = l.start + l.subject; if (seen.has(k)) return false; seen.add(k); return true; });
     html += `
       <div class="card">
         <h3 class="card-title">Stundenplan · ${dateLabel(day)}</h3>
-        ${rows.map(l => {
-          const subjId = untisSubject(l.subject, l.subjectLong);
-          const s = subjId ? getSubject(subjId) : { name: l.subjectLong || l.subject, abbr: l.subject, color: '#8a8a8a' };
-          return `
-            <div class="lesson-row ${l.cancelled ? 'cancelled' : ''} ${l.irregular ? 'irregular' : ''}" ${subjId ? `onclick="go('subject', {id:'${subjId}'})"` : ''}>
-              <span class="lesson-time">${esc(l.start)}</span>
-              ${subjectBadge(s, 'sm')}
-              <div class="lesson-text"><span>${esc(l.subjectLong || s.name)}</span>${l.cancelled ? '<small class="lesson-flag">fällt aus</small>' : l.irregular ? '<small class="lesson-flag">Vertretung</small>' : ''}${l.info ? `<small>${esc(l.info)}</small>` : ''}</div>
-              <span class="mono-muted">${esc(l.room)}</span>
-            </div>`;
-        }).join('')}
+        ${lessonRowsHtml(day)}
       </div>`;
   }
   const hw = homeworkOpen().slice(0, 6);
@@ -219,6 +205,29 @@ function untisHomeCards() {
       </div>`;
   }
   return html;
+}
+
+function lessonRowsHtml(day) {
+  const u = untisData();
+  // Mehrere Einträge pro Stunde (z. B. Kurse) zusammenfassen
+  const seen = new Set();
+  const rows = u.timetable.filter(l => l.date === day).filter(l => {
+    const k = l.start + l.subject;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  return rows.map(l => {
+    const subjId = untisSubject(l.subject, l.subjectLong);
+    const s = subjId ? getSubject(subjId) : { name: l.subjectLong || l.subject || 'Stunde', abbr: (l.subject || '?').slice(0, 3), color: '#8a8a8a' };
+    return `
+      <div class="lesson-row ${l.cancelled ? 'cancelled' : ''} ${l.irregular ? 'irregular' : ''}" ${subjId ? `onclick="go('subject', {id:'${subjId}'})"` : ''}>
+        <span class="lesson-time">${esc(l.start)}</span>
+        ${subjectBadge(s, 'sm')}
+        <div class="lesson-text"><span>${esc(l.subjectLong || s.name)}</span>${l.cancelled ? '<small class="lesson-flag">fällt aus</small>' : l.irregular ? '<small class="lesson-flag">Vertretung</small>' : ''}${l.info ? `<small>${esc(l.info)}</small>` : ''}</div>
+        <span class="mono-muted">${esc(l.room)}</span>
+      </div>`;
+  }).join('');
 }
 
 function toggleHomework(id) {
@@ -259,8 +268,13 @@ function renderUntis(container) {
       <div class="card">
         <div class="school-pick"><div><b>${esc(u.school.displayName)}</b><small>${esc(u.user)} · zuletzt ${esc(lastSync)}</small></div></div>
         ${!untisPassword() ? '<p class="note" style="color:var(--red)">Auf diesem Gerät fehlt noch das Passwort.</p>' : ''}
-        ${u.lastError ? `<p class="note" style="color:var(--red)">${esc(u.lastError)}</p>` : ''}
-        ${(u.warnings || []).length ? `<p class="note">Nicht alles verfügbar: ${esc(u.warnings.join('; '))}</p>` : ''}
+        ${u.lastError ? `<p class="status-line bad">${icon('close', 15)} Abruf fehlgeschlagen: ${esc(u.lastError)}</p>` : u.lastSync ? `<p class="status-line ok">${icon('check', 15)} Verbunden, Anmeldung hat geklappt</p>` : ''}
+        ${u.lastSync && !u.lastError ? `
+          <div class="sync-list">
+            ${syncRow('Stundenplan', u.timetable.length, `Stunden an ${new Set(u.timetable.map(l => l.date)).size} Tagen`, 'Stundenplan')}
+            ${syncRow('Arbeiten und Tests', u.exams.filter(e => e.date >= todayStr()).length, 'demnächst', 'Arbeiten')}
+            ${syncRow('Hausaufgaben', homeworkOpen().length, 'offen', 'Hausaufgaben')}
+          </div>` : ''}
         <div class="row-2" style="margin-top:12px;">
           ${untisPassword() ? `<button class="btn btn-primary" onclick="syncUntis()">${icon('refresh', 16)} Jetzt abrufen</button>` : `<button class="btn btn-primary" onclick="go('untis', {edit:true})">Passwort eingeben</button>`}
           <button class="btn btn-outline" onclick="disconnectUntis()">Trennen</button>
@@ -269,10 +283,22 @@ function renderUntis(container) {
   }
 
   const names = untisSubjectNames();
+  const days = [...new Set(u.timetable.map(l => l.date))].filter(d => d >= todayStr()).slice(0, 5);
+  const hw = homeworkOpen();
   const upcoming = u.exams.filter(e => e.date >= todayStr()).sort((a, b) => a.date.localeCompare(b.date));
   container.innerHTML = `
     <div class="setup-header">${backBtn('profile')}<h3>Untis</h3><span></span></div>
     ${top}
+    ${days.length ? `
+      <h3 class="group-title">Stundenplan</h3>
+      ${days.map(d => `<div class="card tight"><p class="mini-label day-label">${dateLabel(d)}</p>${lessonRowsHtml(d)}</div>`).join('')}` : ''}
+    ${hw.length ? `
+      <h3 class="group-title">Hausaufgaben</h3>
+      <div class="card tight">${hw.map(h => `
+        <div class="task-row">
+          <button class="check-btn" onclick="toggleHomework('${esc(h.id)}')" aria-label="Erledigt"></button>
+          <div class="task-text"><span>${esc(h.text)}</span><small>${esc(h.subject)} · bis ${dateLabel(h.due)}</small></div>
+        </div>`).join('')}</div>` : ''}
     ${upcoming.length ? `
       <h3 class="group-title">Arbeiten und Tests</h3>
       <div class="card tight">${upcoming.map(e => {
@@ -297,6 +323,17 @@ function renderUntis(container) {
       </details>` : ''}
     <p class="note center">Arbeiten aus Untis landen automatisch im Lernplan. Abgerufen wird beim Öffnen und jede Stunde.</p>
   `;
+}
+
+// Eine Zeile pro Datenart: Anzahl oder Grund, warum nichts kam
+function syncRow(label, count, unit, warnKey) {
+  const u = untisData();
+  const warn = (u.warnings || []).find(w => w.startsWith(warnKey));
+  const blocked = warn && !count;
+  return `<div class="sync-row ${blocked ? 'bad' : ''}">
+    <span>${blocked ? icon('close', 14) : icon('check', 14)} ${esc(label)}</span>
+    <span class="mono-muted">${blocked ? 'von der Schule gesperrt' : `${count}${unit ? ' ' + esc(unit) : ''}`}</span>
+  </div>`;
 }
 
 let schoolSearchTimer = null;
@@ -343,8 +380,13 @@ async function connectUntis() {
   u.user = user;
   localStorage.setItem(UNTIS_PW_KEY, pw);
   renderLoading('Verbindung zu Untis', 'Stundenplan, Arbeiten und Hausaufgaben werden geholt.');
-  const ok = await syncUntis();
-  if (!ok) localStorage.removeItem(UNTIS_PW_KEY);
+  const ok = await syncUntis({ silent: true });
+  if (!ok) {
+    localStorage.removeItem(UNTIS_PW_KEY);
+    toast('Anmeldung fehlgeschlagen: ' + (u.lastError || 'unbekannter Fehler'));
+  } else {
+    toast('Verbunden.');
+  }
   go('untis', ok ? {} : { edit: true, school });
 }
 

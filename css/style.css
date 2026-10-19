@@ -659,3 +659,14 @@ header { view-transition-name: header; }
 .nav-icon, .nav-label { transition: transform .2s, color .2s; }
 .toggle-btn { transition: background-color .2s, color .2s; }
 .choice, .one-item .app-img, .check-btn { transition: background-color .15s, color .15s, outline-color .15s; }
+
+.status-line { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; margin: 10px 0 6px; }
+.status-line.ok { color: var(--green); }
+.status-line.bad { color: var(--red); }
+.sync-list { border: 2px solid var(--ink); border-radius: 4px; background: var(--paper); padding: 2px 10px; margin-top: 6px; }
+.sync-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--rule); font-size: 14px; }
+.sync-row:last-child { border-bottom: none; }
+.sync-row > span:first-child { display: flex; align-items: center; gap: 6px; }
+.sync-row .ico { color: var(--green); }
+.sync-row.bad .ico, .sync-row.bad .mono-muted { color: var(--red); }
+.day-label { padding: 8px 0 2px; }
