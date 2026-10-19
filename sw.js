@@ -1,10 +1,10 @@
 // Offline-Cache: App-Dateien zuerst aus dem Cache, Updates im Hintergrund.
-const CACHE = 'lernapp-v15';
+const CACHE = 'lernapp-v16';
 const FILES = [
-  './', './index.html', './manifest.json', './css/style.css?v=15',
-  './js/data.js?v=15', './js/store.js?v=15', './js/sync.js?v=15', './js/ui.js?v=15', './js/icons.js?v=15', './js/images.js?v=15', './js/ai.js?v=15', './js/gamify.js?v=15',
-  './js/math.js?v=15', './js/decks.js?v=15', './js/mathview.js?v=15', './js/exam.js?v=15',
-  './js/tutor.js?v=15', './js/plan.js?v=15', './js/planner.js?v=15', './js/push.js?v=15', './js/onenote.js?v=15', './js/untis.js?v=15', './js/scp.js?v=15', './js/app.js?v=15',
+  './', './index.html', './manifest.json', './css/style.css?v=16',
+  './js/data.js?v=16', './js/store.js?v=16', './js/sync.js?v=16', './js/ui.js?v=16', './js/icons.js?v=16', './js/images.js?v=16', './js/ai.js?v=16', './js/gamify.js?v=16',
+  './js/math.js?v=16', './js/decks.js?v=16', './js/mathview.js?v=16', './js/exam.js?v=16',
+  './js/tutor.js?v=16', './js/plan.js?v=16', './js/planner.js?v=16', './js/push.js?v=16', './js/onenote.js?v=16', './js/untis.js?v=16', './js/scp.js?v=16', './js/app.js?v=16',
   './icons/icon-192.png', './icons/apple-touch-icon.png'
 ];
 
@@ -22,7 +22,8 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.endsWith('.mp4')) return;
   // Seiten selbst immer zuerst frisch laden, damit Updates sofort ankommen
   if (e.request.mode === 'navigate') {
-    e.respondWith(fetch(e.request).then(res => {
+    // Am Zwischenspeicher des Browsers vorbei, sonst kommt ein Update bis zu 10 Minuten zu spät
+    e.respondWith(fetch(e.request, { cache: 'no-store' }).then(res => {
       caches.open(CACHE).then(c => c.put('./index.html', res.clone()));
       return res;
     }).catch(() => caches.match('./index.html')));

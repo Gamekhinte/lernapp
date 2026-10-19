@@ -329,6 +329,7 @@ function renderOneNote(container) {
       : `<p class="note" style="margin-top:0;">Einmal den Ordner mit den OneNote-Sicherungen verbinden. Danach kommen neue Arbeitsblätter und Hefteinträge automatisch.</p>
          <button class="btn btn-primary" onclick="connectOneNote()">${icon('folder', 16)} Ordner verbinden</button>`)
     : `<p class="note" style="margin-top:0;">Zuletzt am PC geprüft: ${esc(lastScan)}. OneNote wird am PC eingelesen (Chrome oder Edge). Neue Seiten erscheinen dann hier und du kannst sie auch am Handy verarbeiten.</p>
+       <p class="note">Die Bilder lädt dein Laptop in die Cloud. Wenn hier nur gestreifte Platzhalter sind: die Lernapp am Laptop öffnen, angemeldet lassen und kurz warten.</p>
        <button class="btn btn-outline btn-sm" onclick="document.getElementById('oneFolderInput').click()">${icon('folder', 15)} Ordner einmalig auswählen</button>`;
 
   const notebooks = Object.entries(on.notebooks).sort();

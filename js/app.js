@@ -187,7 +187,7 @@ function renderProfile(container) {
         <button class="btn btn-outline btn-sm" onclick="document.getElementById('backupInput').click()">${icon('upload', 15)} Laden</button>
       </div>
       <p class="note">Installieren: im Browser-Menü "Zum Startbildschirm hinzufügen".</p>
-      <p class="note center" style="margin-top:14px;">made by Liam</p>
+      <p class="note center" style="margin-top:14px;">made by Liam · Version ${APP_VERSION}</p>
     </div>
   `;
 }
@@ -362,5 +362,18 @@ initAuth().then(async () => {
 });
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
+    // Bei jedem Öffnen und alle 10 Minuten nach einer neuen Version schauen
+    reg.update().catch(() => {});
+    setInterval(() => reg.update().catch(() => {}), 10 * 60000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+  }).catch(() => {});
+  // Neue Version übernommen: einmal neu laden, damit auch die neuen Dateien laufen
+  let reloading = false;
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloading) return;
+    reloading = true;
+    location.reload();
+  });
 }
