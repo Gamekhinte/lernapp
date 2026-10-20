@@ -122,6 +122,10 @@ async function scp(email: string, password: string) {
   // Doppelte Einträge entfernen
   const uniq = new Map<string, any>();
   for (const e of entries) uniq.set(e.date + e.text, e);
+  // Auswertung für die Fehlersuche (keine Zugangsdaten): Menü, durchsuchte Seiten, gefundene Zeilen
+  const diag: any = { diag: "scp", menu: menu.map(m => m.text + " " + m.href).slice(0, 40), pages: pages.map(p => p.text), entries: uniq.size, sample: [...uniq.values()].slice(0, 12).map(e => e.source + ": " + e.text.slice(0, 90)) };
+  if (!pages.length || uniq.size < 3) diag.startLines = toLines(start.html).slice(0, 40).map(l => l.slice(0, 90));
+  console.log(JSON.stringify(diag));
   await get("/scp/logout", jar).catch(() => {});
   return { entries: [...uniq.values()], menu: menu.map(m => m.text).filter(Boolean).slice(0, 40), pages: pages.map(p => p.text) };
 }

@@ -1,5 +1,5 @@
 // OneNote-Import: liest die OneNote-Sicherungsdateien (.one) direkt im Browser.
-// Bilder (Arbeitsblätter, Buchseiten) und Text werden herausgezogen, neue Seiten landen in "Neu aus OneNote".
+// Bilder (Arbeitsblätter, Buchseiten), Text und Handschrift werden herausgezogen und nach Themen (Abschnitten) sortiert.
 // Am PC (Chrome/Edge) merkt sich die App den Ordner und prüft bei jedem Öffnen und alle 30 Minuten auf Neues.
 
 const ONE_PNG = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
@@ -359,7 +359,7 @@ function oneNoteBanner(subjectId = null) {
     return `<div class="one-banner" onclick="recheckOneNote(true)"><span>${icon('note', 24)}</span><div><b>OneNote prüfen</b><small>Ordner wieder freigeben</small></div><span class="chev">›</span></div>`;
   }
   if (!n) return '';
-  return `<div class="one-banner" onclick="go('onenote', ${subjectId ? `{subject:'${subjectId}'}` : '{}'})"><span>${icon('note', 24)}</span><div><b>${n} neue Seite${n > 1 ? 'n' : ''} aus OneNote</b><small>Aussuchen, was du lernen willst</small></div><span class="chev">›</span></div>`;
+  return `<div class="one-banner" onclick="go('onenote', ${subjectId ? `{subject:'${subjectId}'}` : '{}'})"><span>${icon('note', 24)}</span><div><b>${n} neue Seite${n > 1 ? 'n' : ''} aus OneNote</b><small>Nach Themen sortiert, ganz ohne KI</small></div><span class="chev">›</span></div>`;
 }
 
 function renderOneNote(container) {
@@ -367,10 +367,7 @@ function renderOneNote(container) {
   const p = state.params;
   if (!p.sel) p.sel = [];
   const filter = p.subject || null;
-  const items = newOneNoteItems(filter).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const groups = {};
-  items.forEach(it => (groups[it.key] = groups[it.key] || []).push(it));
-  const subjectsWithItems = [...new Set(newOneNoteItems().map(it => it.subject))];
+  const subjectsWithItems = [...new Set(oneTopics().map(t => t.subject))];
   const lastScan = on.lastScan ? new Date(on.lastScan).toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' }) : 'noch nie';
 
   const prog = state.onenoteProgress;
@@ -395,30 +392,6 @@ function renderOneNote(container) {
   const notebooks = Object.entries(on.notebooks).sort();
   const subjOptions = cur => `<option value="">Nicht importieren</option>` + getSubjects().map(s => `<option value="${s.id}" ${cur === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('');
 
-  const groupHtml = Object.entries(groups).map(([key, list]) => {
-    const first = list[0];
-    const subj = getSubject(first.subject);
-    return `
-      <div class="card one-group">
-        <div class="one-group-head">
-          <div class="one-title">${subjectBadge(subj, 'sm')}<b>${esc(first.section)}</b><small>${esc(subj.name)} · ${esc(first.date ? dateLabel(first.date) : '')} · ${list.length} Bild${list.length > 1 ? 'er' : ''}</small></div>
-          <div class="sel-btns">
-            <button class="btn btn-outline btn-xs" onclick="selectOneGroup(${jsArg(key)})">Alle</button>
-            <button class="btn btn-outline btn-xs" onclick="ignoreOneGroup(${jsArg(key)})">Ignorieren</button>
-          </div>
-        </div>
-        <div class="one-grid">
-          ${list.map(it => `
-            <div class="one-item ${p.sel.includes(it.id) ? 'picked' : ''}" onclick="toggleOneItem('${it.id}')">
-              ${imgTag(it.imgId, 'thumb', false)}
-              <span class="one-check">${p.sel.includes(it.id) ? icon('check', 14) : ''}</span>
-              <button class="one-zoom" onclick="event.stopPropagation(); openImage('${it.imgId}')" aria-label="Vergrößern">${icon('search', 14)}</button>
-            </div>`).join('')}
-        </div>
-      </div>`;
-  }).join('');
-
-  const done = on.items.filter(it => it.status === 'done').length;
   container.innerHTML = `
     <input type="file" id="oneFolderInput" webkitdirectory multiple hidden onchange="scanFromInput(event)">
     <div class="setup-header">${backBtn('home')}<h3>OneNote</h3><span></span></div>
@@ -436,10 +409,7 @@ function renderOneNote(container) {
     </div>
     ${p.result ? `<div class="card one-result"><h3 class="card-title">Fertig</h3>${p.result.map(r => `<div class="task-row"><div class="task-text"><span>${esc(r.name)}</span><small>${esc(getSubject(r.subject).name)} · ${r.count} ${r.kind === 'set' ? 'Aufgaben' : 'Karten'}</small></div><button class="btn btn-primary btn-xs" onclick="${r.kind === 'set' ? `startMathRun({ setId: '${r.id}' })` : `go('deckSetup', {deckId:'${r.id}'})`}">Lernen</button></div>`).join('')}</div>` : ''}
     ${subjectsWithItems.length > 1 ? `<div class="chip-row"><button class="chip ${!filter ? 'active' : ''}" onclick="go('onenote', {})">Alle</button>${subjectsWithItems.map(id => `<button class="chip ${filter === id ? 'active' : ''}" onclick="go('onenote', {subject:'${id}'})">${esc(getSubject(id).name)}</button>`).join('')}</div>` : ''}
-    <h3 class="group-title">Neu aus OneNote (${items.length})</h3>
-    ${notesCardHtml(filter)}
-    ${groupHtml || `<div class="empty">${on.lastScan ? 'Alles erledigt. Neue Arbeitsblätter tauchen hier auf, sobald OneNote sie sichert.' : 'Noch nichts eingelesen.'}</div>`}
-    ${done ? `<p class="note center">${done} Bilder schon verarbeitet.</p>` : ''}
+    ${topicListHtml(filter) || `<div class="empty">${on.lastScan ? 'Noch keine Themen. Neue Seiten tauchen hier auf, sobald OneNote sie sichert.' : 'Noch nichts eingelesen.'}</div>`}
     ${notebooks.length ? `
       <details class="card one-settings">
         <summary class="card-title" style="margin:0;">Notizbücher zuordnen</summary>
@@ -449,7 +419,6 @@ function renderOneNote(container) {
           </div>`).join('')}
         <p class="note">Nach einer Änderung einmal "Jetzt prüfen" tippen.</p>
       </details>` : ''}
-    ${p.sel.length ? `<div class="one-action"><button class="btn btn-primary" onclick="processOneNote()">${p.sel.length} Bild${p.sel.length > 1 ? 'er' : ''} verarbeiten</button></div>` : ''}
   `;
 }
 
@@ -490,7 +459,7 @@ function setNotebookSubject(name, subjectId) {
 async function processOneNote() {
   if (!requireAi()) return;
   const on = state.data.onenote;
-  const chosen = on.items.filter(it => (state.params.sel || []).includes(it.id) && it.status === 'new');
+  const chosen = on.items.filter(it => (state.params.sel || []).includes(it.id) && ['new', 'seen'].includes(it.status));
   if (!chosen.length) return;
   const groups = {};
   chosen.forEach(it => (groups[it.key] = groups[it.key] || []).push(it));

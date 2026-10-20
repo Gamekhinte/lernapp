@@ -230,9 +230,11 @@ function startPlanTask(examId, taskId) {
     });
   } else if (r.type === 'exam') {
     go('examSetup', { subject: exam.subject, examId: exam.id });
+  } else if (r.type === 'note') {
+    go('oneTopic', { key: r.id, examId: exam.id, taskId: task.id, back: [state.screen, { ...state.params }] });
   } else if (r.type === 'tutor') {
-    if (!requireAi()) return;
-    startTutorTopic(exam, task);
+    // Ohne KI: selbst lernen und abhaken
+    selfStudyTask(exam, task);
   }
 }
 
@@ -376,7 +378,7 @@ function renderExamPlan(container) {
 
 function topicsCardHtml(exam) {
   ensureTopics(exam);
-  const from = { ka: 'aus der Klassenarbeits-Seite in OneNote', onenote: 'aus den letzten OneNote-Themen', ki: 'von der KI geschätzt' }[exam.topicsFrom] || 'aus deiner Auswahl';
+  const from = { ka: 'KI, aus der Klassenarbeits-Seite in OneNote', onenote: 'KI, aus den letzten OneNote-Themen', ki: 'von der KI geschätzt', 'ka-auto': 'aus der Klassenarbeits-Seite in OneNote', 'onenote-auto': 'aus deinen letzten OneNote-Themen' }[exam.topicsFrom] || 'aus deiner Auswahl';
   const total = exam.topics.reduce((s, t) => s + (t.minutes || 0), 0);
   return `
     <div class="card">
@@ -384,7 +386,7 @@ function topicsCardHtml(exam) {
       <p class="note" style="margin-top:0;">${exam.topics.length} Themen, zusammen ca. ${total} Min Lernzeit · ${from}</p>
       ${exam.topics.map(t => `
         <div class="topic-edit">
-          <div class="task-text"><span>${esc(t.title)}</span>${t.summary ? `<small>${esc(t.summary)}</small>` : ''}</div>
+          <div class="task-text"><span>${t.refs?.[0]?.type === 'note' ? `<a class="topic-link" onclick='go("oneTopic", {key: ${jsArg(t.refs[0].id)}, back: ["examPlan", {id: "${exam.id}"}]})'>${esc(t.title)}</a>` : esc(t.title)}</span>${t.summary ? `<small>${esc(t.summary)}</small>` : ''}</div>
           <select onchange="setTopicMinutes('${exam.id}', '${t.id}', Number(this.value))">${[10, 15, 20, 30, 45, 60, 90].map(v => `<option value="${v}" ${t.minutes === v ? 'selected' : ''}>${v} Min</option>`).join('')}</select>
           <button class="icon-btn small" onclick="removeTopic('${exam.id}', '${t.id}')" aria-label="Entfernen">${icon('close', 14)}</button>
         </div>`).join('') || '<p class="note">Noch keine Themen.</p>'}
@@ -397,10 +399,21 @@ function topicsCardHtml(exam) {
 
 async function findTopicsNow(examId) {
   const exam = state.data.exams.find(e => e.id === examId);
-  if (!exam || !requireAi()) return;
+  if (!exam) return;
+  if (!hasAiKey()) {
+    // Ohne KI: Themen direkt aus OneNote und dem ausgewählten Stoff
+    if (setTopicsWithoutAi(exam)) { rebuildAllPlans(); saveData(); toast(`${exam.topics.length} Themen aus OneNote, Plan steht.`); }
+    else toast('In OneNote gibt es zu dem Fach noch nichts. Füg Themen von Hand hinzu.');
+    return render();
+  }
   renderLoading('Stoff wird gesucht', 'OneNote, Untis und SCP werden durchgesehen.');
   await findTopicsWithAi(exam);
   go('examPlan', { id: examId });
+}
+
+// Von Hand geändert: nicht mehr automatisch aus OneNote überschreiben
+function lockTopics(exam) {
+  if (!exam.topicsFrom || exam.topicsFrom === 'auswahl' || exam.topicsFrom.endsWith('-auto')) exam.topicsFrom = 'manuell';
 }
 
 function setTopicMinutes(examId, topicId, minutes) {
@@ -408,6 +421,7 @@ function setTopicMinutes(examId, topicId, minutes) {
   const t = exam?.topics?.find(x => x.id === topicId);
   if (!t) return;
   t.minutes = minutes;
+  lockTopics(exam);
   touch(exam);
   rebuildAllPlans();
   saveData();
@@ -418,7 +432,7 @@ function removeTopic(examId, topicId) {
   const exam = state.data.exams.find(e => e.id === examId);
   if (!exam) return;
   exam.topics = exam.topics.filter(t => t.id !== topicId);
-  if (!exam.topics.length) exam.topicsFrom = exam.topicsFrom || 'manuell';
+  lockTopics(exam);
   touch(exam);
   rebuildAllPlans();
   saveData();
@@ -431,7 +445,7 @@ function addTopic(examId) {
   if (!exam || !title?.trim()) return;
   ensureTopics(exam);
   exam.topics.push({ id: 'm' + uid().slice(0, 6), title: title.trim().slice(0, 80), minutes: 30, how: 'Verstehen', refs: [], summary: '' });
-  exam.topicsFrom = exam.topicsFrom || 'manuell';
+  lockTopics(exam);
   touch(exam);
   rebuildAllPlans();
   saveData();

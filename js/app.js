@@ -19,6 +19,7 @@ const SCREENS = {
   profile: renderProfile,
   history: renderHistory,
   onenote: renderOneNote,
+  oneTopic: renderOneTopic,
   untis: renderUntis
 };
 

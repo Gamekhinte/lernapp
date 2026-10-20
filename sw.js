@@ -1,10 +1,10 @@
 // Offline-Cache: App-Dateien zuerst aus dem Cache, Updates im Hintergrund.
-const CACHE = 'lernapp-v18';
+const CACHE = 'lernapp-v19';
 const FILES = [
-  './', './index.html', './manifest.json', './css/style.css?v=18',
-  './js/data.js?v=18', './js/store.js?v=18', './js/sync.js?v=18', './js/ui.js?v=18', './js/icons.js?v=18', './js/images.js?v=18', './js/ai.js?v=18', './js/gamify.js?v=18',
-  './js/math.js?v=18', './js/decks.js?v=18', './js/mathview.js?v=18', './js/exam.js?v=18',
-  './js/tutor.js?v=18', './js/plan.js?v=18', './js/planner.js?v=18', './js/push.js?v=18', './js/onenote.js?v=18', './js/untis.js?v=18', './js/scp.js?v=18', './js/app.js?v=18',
+  './', './index.html', './manifest.json', './css/style.css?v=19',
+  './js/data.js?v=19', './js/store.js?v=19', './js/sync.js?v=19', './js/ui.js?v=19', './js/icons.js?v=19', './js/images.js?v=19', './js/ai.js?v=19', './js/gamify.js?v=19',
+  './js/math.js?v=19', './js/decks.js?v=19', './js/mathview.js?v=19', './js/exam.js?v=19',
+  './js/tutor.js?v=19', './js/plan.js?v=19', './js/planner.js?v=19', './js/push.js?v=19', './js/onenote.js?v=19', './js/topics.js?v=19', './js/untis.js?v=19', './js/scp.js?v=19', './js/app.js?v=19',
   './icons/icon-192.png', './icons/apple-touch-icon.png'
 ];
 

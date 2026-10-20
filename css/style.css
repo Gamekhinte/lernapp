@@ -683,3 +683,10 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .app-img.missing { opacity: .55; }
 
 .notes-box { border: 2px solid var(--ink); border-radius: 4px; background: var(--paper); padding: 10px 12px; font-size: 14px; max-height: 38vh; overflow-y: auto; line-height: 1.5; }
+
+/* Themen aus OneNote */
+.topic-row { cursor: pointer; }
+.topic-row:hover .task-text span { text-decoration: underline; }
+.new-pill { font-style: normal; font-family: 'Space Mono', monospace; font-size: 10px; text-transform: uppercase; background: #7056b8; color: #fff; border-radius: 3px; padding: 1px 5px; margin-left: 4px; vertical-align: 2px; }
+.topic-link { cursor: pointer; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+.plan-hint { border-left: 8px solid var(--accent); }

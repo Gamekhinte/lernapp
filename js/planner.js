@@ -1,5 +1,5 @@
 // Lernplaner: verteilt den Stoff aller anstehenden Arbeiten auf die eingestellten Lernzeiten, mit Uhrzeit.
-// Den Stoff findet die KI aus OneNote (Seite "Klassenarbeit" o. ä. oder die letzten Themen), Untis und dem SCP.
+// Den Stoff nimmt er aus OneNote (Seite "Klassenarbeit" o. ä. oder die letzten Themen), auf Wunsch auch mit KI.
 
 const KA_PAGE_RE = /klassenarbeit|klausur|\btest\b|lernzettel|themen|stoff|\bka\b|lzk|lernkontrolle|vorbereitung|übersicht/i;
 
@@ -55,11 +55,20 @@ function topicsFromSources(exam) {
 }
 
 function ensureTopics(exam) {
-  if (!Array.isArray(exam.topics) || !exam.topics.length) exam.topics = topicsFromSources(exam);
+  if (Array.isArray(exam.topics) && exam.topics.length) return;
+  if (exam.topicsFrom === 'manuell' || !setTopicsWithoutAi(exam)) exam.topics = topicsFromSources(exam);
 }
 
 function topicRef(topic) {
   const r = topic.refs?.[0];
+  // Gibt es zum OneNote-Thema schon eine Kartei oder Aufgaben, wird damit gelernt
+  if (r?.type === 'note') {
+    const deck = state.data.decks.find(d => d.onenoteKey === r.id && d.cards.length);
+    if (deck) return { type: 'deck', id: deck.id };
+    const set = state.data.mathSets.find(s => s.onenoteKey === r.id && s.tasks.length);
+    if (set) return { type: 'set', id: set.id };
+    return { type: 'note', id: r.id };
+  }
   if (r && (r.type === 'deck' ? state.data.decks.some(d => d.id === r.id) : r.type === 'set' ? state.data.mathSets.some(m => m.id === r.id) : true)) {
     return { type: r.type, id: r.id };
   }
@@ -228,15 +237,30 @@ JSON: {"topics":[{"title":"...","minutes":30,"how":"Karteikarten|Aufgaben|Verste
 // Im Hintergrund: neue Arbeiten ohne KI-Themen und neue "Klassenarbeit"-Seiten in OneNote
 let autoTopicsRunning = false;
 async function autoFindTopics() {
-  if (autoTopicsRunning || !hasAiKey()) return;
+  if (autoTopicsRunning) return;
   autoTopicsRunning = true;
   try {
     const today = todayStr();
+    let changed = false;
     for (const exam of state.data.exams.filter(e => e.date > today)) {
       const ctx = examContext(exam);
-      const needs = !exam.topicsFrom || (ctx.fromKaPage && exam.topicsFrom !== 'ka');
-      if (needs) await findTopicsWithAi(exam, { silent: true });
+      const auto = !exam.topicsFrom || exam.topicsFrom === 'auswahl' || exam.topicsFrom.endsWith('-auto');
+      const kaNew = ctx.fromKaPage && !['ka', 'ka-auto', 'manuell'].includes(exam.topicsFrom);
+      // Mit eigenem Schlüssel höchstens einmal am Tag die KI fragen
+      if (hasAiKey() && (auto || kaNew) && (exam.aiTriedOn !== today || kaNew)) {
+        exam.aiTriedOn = today;
+        if (await findTopicsWithAi(exam, { silent: true })) continue;
+      }
+      // Ohne KI: Themen aus OneNote, sobald etwas Neues da ist
+      if ((auto || kaNew) && exam.topicsFrom !== 'manuell') {
+        const before = JSON.stringify((exam.topics || []).map(t => t.id));
+        const prev = exam.topics;
+        exam.topics = [];
+        if (setTopicsWithoutAi(exam) && JSON.stringify(exam.topics.map(t => t.id)) !== before) changed = true;
+        else exam.topics = prev;
+      }
     }
+    if (changed) { rebuildAllPlans(); saveData(); }
   } finally {
     autoTopicsRunning = false;
     if (['home', 'plan', 'examPlan'].includes(state.screen)) render();

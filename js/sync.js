@@ -68,7 +68,7 @@ function mergeData(a, b) {
 
   // OneNote: alles Gefundene zusammen, erledigt schlägt neu
   const oa = a.onenote || {}, ob = b.onenote || {};
-  const rank = { done: 3, ignored: 2, new: 1 };
+  const rank = { done: 3, ignored: 2, seen: 1.5, new: 1 };
   out.onenote = {
     ...(aNewer ? ob : oa), ...(aNewer ? oa : ob),
     notebooks: { ...(aNewer ? ob.notebooks : oa.notebooks), ...(aNewer ? oa.notebooks : ob.notebooks) },
