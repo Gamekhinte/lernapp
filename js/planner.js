@@ -157,7 +157,7 @@ function examContext(exam) {
     s.imgs.push(it.imgId);
     if ((it.date || '') > s.date) s.date = it.date;
   });
-  Object.keys(on.texts || {}).forEach(k => {
+  Object.keys({ ...(on.texts || {}), ...(on.notes || {}) }).forEach(k => {
     if (notebooks.some(nb => k.startsWith(nb + ' / ')) && !sections[k]) sections[k] = { key: k, name: k.split(' / ').pop(), date: '', imgs: [] };
   });
   const all = Object.values(sections);
@@ -165,7 +165,11 @@ function examContext(exam) {
   const chosen = kaPages.length ? kaPages : all.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
   return {
     fromKaPage: kaPages.length > 0,
-    sections: chosen.map(s => ({ name: s.name, text: cleanOneText(on.texts?.[s.key] || '').slice(0, 1800), imgs: s.imgs.slice(0, 2) }))
+    sections: chosen.map(s => ({
+      name: s.name,
+      text: [on.notes?.[s.key] ? 'Handschriftliche Mitschrift: ' + on.notes[s.key] : '', cleanOneText(on.texts?.[s.key] || '')].filter(Boolean).join('\n').slice(0, 2500),
+      imgs: s.imgs.slice(0, 2)
+    }))
   };
 }
 

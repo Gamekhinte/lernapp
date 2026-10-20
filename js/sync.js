@@ -74,6 +74,10 @@ function mergeData(a, b) {
     notebooks: { ...(aNewer ? ob.notebooks : oa.notebooks), ...(aNewer ? oa.notebooks : ob.notebooks) },
     sections: { ...(ob.sections || {}), ...(oa.sections || {}) },
     texts: { ...(ob.texts || {}), ...(oa.texts || {}) },
+    notes: { ...(ob.notes || {}), ...(oa.notes || {}) },
+    sectionInfo: { ...(ob.sectionInfo || {}), ...(oa.sectionInfo || {}) },
+    notesDone: { ...(ob.notesDone || {}), ...(oa.notesDone || {}) },
+    parseVersion: Math.max(oa.parseVersion || 1, ob.parseVersion || 1),
     seen: { ...(ob.seen || {}), ...(oa.seen || {}) },
     items: byId(oa.items, ob.items, (x, y) => (rank[x.status] || 0) >= (rank[y.status] || 0) ? x : y, it => it.imgId),
     lastScan: [oa.lastScan, ob.lastScan].filter(Boolean).sort().pop() || null

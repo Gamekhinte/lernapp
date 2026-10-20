@@ -126,6 +126,60 @@ async function decodeCandidate(cand) {
 
 const ONE_TEXT_JUNK = /resolutionId|ifndf|HYPERLINK|file:|[A-Z]:\\|Exported|[<>{}]|Calibri|Aptos|PageTitle|PageDateTime|Class Notebook|\.(png|emf|jpg|docx|xlsx|pdf)\b|S::|@|SFUI|-apple-system|Unbenanntes Bild/i;
 
+// Handschrift: OneNote speichert pro geschriebenem Wort bis zu 5 Erkennungs-Varianten direkt hintereinander.
+// Die erste Variante ist die beste. Daraus wird die Mitschrift zurückgebaut.
+const INK_PARSE_VERSION = 2;
+function extractInk(u8) {
+  const strs = [];
+  let cur = '', start = -1;
+  const flush = end => {
+    const t = cur.trim();
+    if (t.length >= 2) strs.push({ start, end, t });
+    cur = ''; start = -1;
+  };
+  for (let i = 0; i + 1 < u8.length; i += 2) {
+    const c = u8[i] | (u8[i + 1] << 8);
+    if ((c >= 0x20 && c <= 0x7E) || (c >= 0xA0 && c <= 0xFF)) {
+      if (start < 0) start = i;
+      cur += String.fromCharCode(c);
+    } else if (cur) {
+      flush(i);
+    }
+  }
+  flush(u8.length);
+  const norm = s => s.toLowerCase().replace(/[^a-zäöüß0-9]/g, '');
+  const similar = (a, b) => { a = norm(a); b = norm(b); return !a || !b ? a === b : a.slice(0, 2) === b.slice(0, 2) || a.slice(-3) === b.slice(-3); };
+  const words = [];
+  let cluster = [];
+  const take = () => {
+    if (cluster.length >= 3 && cluster.length <= 6) {
+      const alts = cluster.map(x => x.t);
+      const best = alts[0];
+      const okAlts = alts.slice(1).filter(a => similar(best, a)).length >= alts.length - 2;
+      if (best.length <= 40 && new Set(alts).size >= 3 && okAlts && (best.match(/[A-Za-zÄÖÜäöüß0-9]/g) || []).length >= 2 && alts.every(a => a.length <= 40)) {
+        words.push({ pos: cluster[0].start, w: best });
+      }
+    }
+    cluster = [];
+  };
+  strs.forEach(s => {
+    if (cluster.length && s.start - cluster[cluster.length - 1].end > 4) take();
+    cluster.push(s);
+  });
+  take();
+  // Wörter zu Zeilen zusammensetzen, doppelte Zeilen (alte Versionen der Seite) weglassen
+  const lines = [];
+  let line = [], prev = null;
+  words.forEach(({ pos, w }) => {
+    if (prev !== null && pos - prev > 1200) { lines.push(line.join(' ')); line = []; }
+    line.push(w);
+    prev = pos;
+  });
+  if (line.length) lines.push(line.join(' '));
+  const seen = new Set();
+  return lines.map(l => l.trim()).filter(l => l.length >= 4 && !seen.has(l) && seen.add(l)).join('\n').slice(0, 5000);
+}
+
 function extractText(u8) {
   const seen = new Set(), lines = [];
   for (let start = 0; start < 2; start++) {
@@ -176,6 +230,7 @@ async function scanOneNote(source, { interactive = false } = {}) {
         on().notebooks[s.notebook] = { subject, include: !!subject };
       }
     });
+    if ((on().parseVersion || 1) < INK_PARSE_VERSION) { on().sections = {}; on().parseVersion = INK_PARSE_VERSION; }
     const todo = sections.filter(s => on().notebooks[s.notebook].include && on().sections[s.key] !== `${s.file.size}-${s.file.lastModified}`);
     state.onenoteProgress.total = todo.length;
     for (let n = 0; n < todo.length; n++) {
@@ -189,6 +244,11 @@ async function scanOneNote(source, { interactive = false } = {}) {
         const u8 = new Uint8Array(await s.file.arrayBuffer());
         const text = extractText(u8);
         if (text) on().texts[s.key] = text;
+        const ink = extractInk(u8);
+        on().notes = on().notes || {};
+        if (ink) on().notes[s.key] = ink;
+        on().sectionInfo = on().sectionInfo || {};
+        on().sectionInfo[s.key] = { notebook: s.notebook, section: s.section, date: s.date, subject: on().notebooks[s.notebook].subject };
         for (const cand of extractImageCandidates(u8)) {
           const hash = await hashBytes(cand.parts[0].subarray(0, Math.min(cand.parts[0].length, 400000)));
           if (on().seen[hash]) continue;
@@ -377,6 +437,7 @@ function renderOneNote(container) {
     ${p.result ? `<div class="card one-result"><h3 class="card-title">Fertig</h3>${p.result.map(r => `<div class="task-row"><div class="task-text"><span>${esc(r.name)}</span><small>${esc(getSubject(r.subject).name)} · ${r.count} ${r.kind === 'set' ? 'Aufgaben' : 'Karten'}</small></div><button class="btn btn-primary btn-xs" onclick="${r.kind === 'set' ? `startMathRun({ setId: '${r.id}' })` : `go('deckSetup', {deckId:'${r.id}'})`}">Lernen</button></div>`).join('')}</div>` : ''}
     ${subjectsWithItems.length > 1 ? `<div class="chip-row"><button class="chip ${!filter ? 'active' : ''}" onclick="go('onenote', {})">Alle</button>${subjectsWithItems.map(id => `<button class="chip ${filter === id ? 'active' : ''}" onclick="go('onenote', {subject:'${id}'})">${esc(getSubject(id).name)}</button>`).join('')}</div>` : ''}
     <h3 class="group-title">Neu aus OneNote (${items.length})</h3>
+    ${notesCardHtml(filter)}
     ${groupHtml || `<div class="empty">${on.lastScan ? 'Alles erledigt. Neue Arbeitsblätter tauchen hier auf, sobald OneNote sie sichert.' : 'Noch nichts eingelesen.'}</div>`}
     ${done ? `<p class="note center">${done} Bilder schon verarbeitet.</p>` : ''}
     ${notebooks.length ? `
@@ -505,4 +566,100 @@ async function processOneNote() {
   else if (!result.length) toast('Auf den Bildern war kein Lernstoff. Sie wurden als erledigt markiert.');
   addXp(5 * result.length);
   go('onenote', { subject: state.params.subject, result: result.length ? result : null });
+}
+
+// ---------- Mitschriften (getippter Text und Handschrift) ----------
+
+function sectionNotes(key) {
+  const on = state.data.onenote || {};
+  const typed = cleanOneText(on.texts?.[key] || '');
+  const ink = on.notes?.[key] || '';
+  return { typed, ink, length: typed.length + ink.length };
+}
+
+function notesList(subjectId = null) {
+  const on = state.data.onenote || {};
+  return Object.entries(on.sectionInfo || {})
+    .filter(([key, info]) => info.subject && (!subjectId || info.subject === subjectId) && sectionNotes(key).length >= 120)
+    .map(([key, info]) => ({ key, ...info, done: (on.notesDone || {})[key] }))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+
+function notesCardHtml(subjectId) {
+  const list = notesList(subjectId).slice(0, 12);
+  if (!list.length) return '';
+  return `
+    <h3 class="group-title">Mitschriften</h3>
+    <div class="card tight">
+      ${list.map(n => `
+        <div class="task-row ${n.done ? 'done' : ''}">
+          ${subjectBadge(getSubject(n.subject), 'sm')}
+          <div class="task-text"><span>${esc(n.section)}</span><small>${esc(getSubject(n.subject).name)}${n.date ? ' · ' + dateLabel(n.date) : ''}${n.done ? ' · schon gelernt' : ''}</small></div>
+          <button class="btn btn-outline btn-xs" onclick='openNotes(${jsArg(n.key)})'>Ansehen</button>
+        </div>`).join('')}
+    </div>`;
+}
+
+function openNotes(key) {
+  const info = state.data.onenote.sectionInfo?.[key] || {};
+  const n = sectionNotes(key);
+  openModal(`
+    <h3 class="modal-title">${esc(info.section || 'Mitschrift')}</h3>
+    <p class="note" style="margin-top:0;">${esc(getSubject(info.subject).name)}${info.date ? ' · Stand ' + dateLabel(info.date) : ''}. Handschrift wird automatisch erkannt, einzelne Wörter können falsch sein.</p>
+    ${n.ink ? `<p class="mini-label">Handschrift</p><div class="notes-box">${esc(n.ink).replace(/\n/g, '<br>')}</div>` : ''}
+    ${n.typed ? `<p class="mini-label" style="margin-top:10px;">Getippt und Arbeitsblätter</p><div class="notes-box">${esc(n.typed).replace(/\n/g, '<br>')}</div>` : ''}
+    <div class="row-2" style="margin-top:14px;">
+      <button class="btn btn-outline" onclick="closeModal()">Schließen</button>
+      <button class="btn btn-primary" onclick='learnFromNotes(${jsArg(key)})'>${getSubject(info.subject).kind === 'mathe' ? 'Aufgaben daraus' : 'Lernkarten daraus'}</button>
+    </div>`);
+}
+
+async function learnFromNotes(key) {
+  if (!requireAi()) return;
+  const on = state.data.onenote;
+  const info = on.sectionInfo?.[key] || {};
+  const subject = getSubject(info.subject);
+  const n = sectionNotes(key);
+  const material = `${n.ink ? 'Handschriftliche Mitschrift (automatisch erkannt, kann Fehler enthalten):\n' + n.ink + '\n\n' : ''}${n.typed ? 'Getippter Text und Arbeitsblätter:\n' + n.typed : ''}`.slice(0, 7000);
+  closeModal();
+  renderLoading('Mitschrift wird verarbeitet', 'Gleich fertig.');
+  try {
+    if (subject.kind === 'mathe') {
+      const res = await aiAsk(`${SCHOOL_CONTEXT} Das ist meine Mitschrift aus dem Mathe-Unterricht zum Abschnitt "${info.section}":\n${material}\n\nErstelle daraus Übungsaufgaben zu genau diesen Themen (6 bis 10 Stück), mit Lösungsweg. ${MATH_TASK_FORMAT}`);
+      const tasks = cleanMathTasks(res.tasks);
+      if (!tasks.length) throw new Error('Keine Aufgaben erhalten.');
+      let set = state.data.mathSets.find(s => s.onenoteKey === key);
+      if (set) set.tasks.push(...tasks);
+      else { set = { id: uid(), title: info.section, tasks, source: 'onenote', onenoteKey: key, createdAt: new Date().toISOString() }; state.data.mathSets.unshift(set); }
+      on.notesDone = { ...(on.notesDone || {}), [key]: true };
+      saveData();
+      toast(`${tasks.length} Aufgaben aus der Mitschrift.`);
+      return startMathRun({ setId: set.id });
+    }
+    const res = await aiAsk(`${SCHOOL_CONTEXT} Fach: ${subject.name}. Das ist meine Mitschrift aus dem Unterricht zum Abschnitt "${info.section}":\n${material}\n\nErstelle daraus Lernkarten zu den wichtigsten Begriffen, Regeln, Daten und Zusammenhängen (6 bis 20 Karten). "term" ist ein Begriff oder eine kurze Frage, "translation" die Erklärung in höchstens zwei Sätzen. Erkennungsfehler in der Handschrift sinnvoll korrigieren. Dazu 4 bis 8 Multiple-Choice-Fragen mit je 4 Antworten, genau eine richtig, mit kurzer Erklärung.${subject.kind === 'sprache' ? ' Vokabeln als term in der Fremdsprache, translation auf Deutsch, und "type":"vocab" setzen, sonst "type":"facts".' : ''}
+JSON: {"type":"facts","cards":[{"term":"...","translation":"..."}],"quiz":[{"q":"...","options":["A","B","C","D"],"correct":0,"explain":"..."}]}`);
+    const cards = cleanCards(res.cards);
+    if (!cards.length) throw new Error('Keine Karten erhalten.');
+    let deck = state.data.decks.find(d => d.onenoteKey === key);
+    if (deck) {
+      const known = new Set(deck.cards.map(c => c.term.toLowerCase()));
+      deck.cards.push(...cards.filter(c => !known.has(c.term.toLowerCase())));
+      deck.quiz.push(...cleanQuiz(res.quiz));
+      touch(deck);
+    } else {
+      deck = {
+        id: uid(), name: info.section, subject: subject.id, type: subject.kind === 'sprache' && res.type === 'vocab' ? 'vocab' : 'facts',
+        sourceLang: subject.lang || 'en', targetLang: 'de', folderId: null, cards, quiz: cleanQuiz(res.quiz), pages: [],
+        onenoteKey: key, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      };
+      state.data.decks.unshift(deck);
+    }
+    on.notesDone = { ...(on.notesDone || {}), [key]: true };
+    saveData();
+    toast(`${cards.length} Karten aus der Mitschrift.`);
+    go('deckSetup', { deckId: deck.id });
+  } catch (err) {
+    toast('Das hat nicht geklappt: ' + err.message);
+    go('onenote');
+  }
 }
