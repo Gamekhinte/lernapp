@@ -1,7 +1,7 @@
 // Feste Daten: Supabase, Fächer, Themes, Sprachen.
 
 // Bei jedem Update hochzählen (zusammen mit ?v= in index.html und dem Cache-Namen in sw.js)
-const APP_VERSION = 20;
+const APP_VERSION = 19;
 
 // Der Publishable Key darf im Browser stehen. Der service_role Key darf niemals hier hinein.
 const SUPABASE_URL = 'https://jxkcxfmutaxmhifgbufv.supabase.co';

@@ -88,7 +88,6 @@ function normalizeData(raw) {
   if (!data.mathProgress || typeof data.mathProgress !== 'object') data.mathProgress = {};
   data.onenote = Object.assign(emptyData().onenote, data.onenote || {});
   if (!Array.isArray(data.onenote.items)) data.onenote.items = [];
-  if (typeof addPresetDecks === 'function') addPresetDecks(data);
 
   data.decks.forEach(d => {
     if (!d.id) d.id = uid();
