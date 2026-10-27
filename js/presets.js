@@ -1,7 +1,10 @@
-// Fertige Karteien zur Französischen Revolution (Geschichte).
+// Fertige Karteien zur Französischen Revolution (Geschichte), plus Karteien zu den Hefteinträgen aus dem Unterricht.
 // Werden einmal angelegt. Gelöschte Karteien kommen nicht zurück.
 
-const PRESET_FOLDERS = [{ id: 'preset-frzrev', name: 'Französische Revolution', color: '#b7791f', subject: 'geschichte' }];
+const PRESET_FOLDERS = [
+  { id: 'preset-frzrev', name: 'Französische Revolution', color: '#b7791f', subject: 'geschichte' },
+  { id: 'preset-heft', name: 'Frz. Revolution – Unterricht (Heft)', color: '#2b7aaf', subject: 'geschichte' }
+];
 
 const PRESET_DECKS = [
  {"id":"preset-frzrev-d","name":"Frz. Revolution – Jahreszahlen","cards":[
@@ -127,6 +130,111 @@ const PRESET_DECKS = [
   {"id":"preset-frzrev-c103","term":"Napoleon Bonaparte","translation":"Staatsstreich 9. 11. 1799 → Erster Konsul; 1804 Kaiser; Code civil sichert Errungenschaften"},
   {"id":"preset-frzrev-c104","term":"Direktorium","translation":"Regierung aus 5 Direktoren (1795–1799), Großbürgertum, politisch instabil"},
   {"id":"preset-frzrev-c105","term":"„Die Revolution frisst ihre Kinder“","translation":"Revolutionäre wie Danton und Robespierre wurden selbst hingerichtet"}
+ ]},
+ {"id":"preset-heft-ursachen","folder":"preset-heft","name":"Heft – Ursachen der Revolution","cards":[
+  {"id": "preset-heft-ursachen-0", "term": "Absolutismus: Wofür gab der König viel Geld aus?", "translation": "Hofhaltung, Staatsverwaltung und stehendes Heer"},
+  {"id": "preset-heft-ursachen-1", "term": "Absolutismus: Welche Folge hatten die hohen Ausgaben?", "translation": "Schulden → Erhöhung der Steuern"},
+  {"id": "preset-heft-ursachen-2", "term": "Was lösten Missernten auf dem Land aus?", "translation": "Steigende Brotpreise in den Städten"},
+  {"id": "preset-heft-ursachen-3", "term": "Was erzeugten Steuererhöhungen und steigende Brotpreise zusammen?", "translation": "Existenziellen Druck (z. B. Hunger) bei den armen Schichten"},
+  {"id": "preset-heft-ursachen-4", "term": "Wozu führte der existenzielle Druck zunächst?", "translation": "Zu Aufständen auf dem Land"},
+  {"id": "preset-heft-ursachen-5", "term": "Frage aus dem Heft: Wie wird aus Aufständen eine Revolution?", "translation": "Hunger allein führt nur zu Aufständen. Erst das Bürgertum mit den Ideen der Aufklärung gibt Ziele (Gleichheit, Verfassung) und Führung; die Generalstände 1789 bieten die Bühne."},
+  {"id": "preset-heft-ursachen-6", "term": "Ursachen-Kette komplett (Absolutismus + Missernten)", "translation": "Hofhaltung, Verwaltung, Heer → Schulden → Steuererhöhung\nMissernten → Brotpreise steigen\n→ Hunger bei den Armen → Aufstände auf dem Land"},
+  {"id": "preset-heft-ursachen-7", "term": "Wirtschaftliche Gründe (4)", "translation": "1. Missernten\n2. hohe Abgaben an Grundherren\n3. hohe Staatsschulden → hohe Steuerlast\n4. Importe & Bevölkerungsanstieg → Wegfall von Arbeitsplätzen → Verarmung"},
+  {"id": "preset-heft-ursachen-8", "term": "Was bewirkten Importe und Bevölkerungsanstieg?", "translation": "Wegfall von Arbeitsplätzen → Verarmung"},
+  {"id": "preset-heft-ursachen-9", "term": "Politische Gründe (4)", "translation": "1. geringe Durchsetzungsfähigkeit des Königs (von Verwaltung abhängig)\n2. hohe Staatsschulden → fast Staatsbankrott\n3. Ämterkauf → unfähige Beamte\n4. Steuerbefreiung für Klerus & Adel"},
+  {"id": "preset-heft-ursachen-10", "term": "Warum war der König politisch schwach?", "translation": "Geringe Durchsetzungsfähigkeit – er war von seiner Verwaltung abhängig"},
+  {"id": "preset-heft-ursachen-11", "term": "Was ist Ämterkauf und was war die Folge?", "translation": "Ämter wurden gekauft statt nach Können vergeben → unfähige Beamte"},
+  {"id": "preset-heft-ursachen-12", "term": "Wozu führten die hohen Staatsschulden politisch?", "translation": "Fast zum Staatsbankrott"},
+  {"id": "preset-heft-ursachen-13", "term": "Kulturelle Gründe", "translation": "Aufklärung: Hauptvertreter aus dem Bürgertum hinterfragten Absolutismus und Gottesgnadentum und machten sich Gedanken über neue Gesellschaftsformen"},
+  {"id": "preset-heft-ursachen-14", "term": "Soziale Gründe", "translation": "Ständegesellschaft: 1. Stand (Klerus) und 2. Stand (Adel) steuerbefreit, 3. Stand (98 %) trägt die Lasten, ca. 12 Mio. verarmt"},
+  {"id": "preset-heft-ursachen-15", "term": "Die 4 Arten von Gründen", "translation": "wirtschaftlich · politisch · kulturell · sozial"}
+ ]},
+ {"id":"preset-heft-gesellschaft","folder":"preset-heft","name":"Heft – Stände & Schichten","cards":[
+  {"id": "preset-heft-gesellschaft-0", "term": "1. Stand", "translation": "Klerus (= 0,5 %), ca. 140.000\nhoher & niedriger Klerus"},
+  {"id": "preset-heft-gesellschaft-1", "term": "2. Stand", "translation": "Adel (= 1,5 %), ca. 425.000\nreich, vom König abhängig"},
+  {"id": "preset-heft-gesellschaft-2", "term": "3. Stand", "translation": "Bürgertum & Bauern (≈ 98 %)\nStadt & Land: Großbürger, reiche Bürger, „freie“ Bauern usw.\nca. 12 Mio. verarmt"},
+  {"id": "preset-heft-gesellschaft-3", "term": "Wie viele Menschen im 3. Stand waren verarmt?", "translation": "ca. 12 Millionen"},
+  {"id": "preset-heft-gesellschaft-4", "term": "Welche Stände waren steuerbefreit?", "translation": "Klerus (1. Stand) und Adel (2. Stand)"},
+  {"id": "preset-heft-gesellschaft-5", "term": "Oberschicht – Stadt", "translation": "Adel, reiche Kaufleute"},
+  {"id": "preset-heft-gesellschaft-6", "term": "Oberschicht – Land", "translation": "Adel"},
+  {"id": "preset-heft-gesellschaft-7", "term": "Mittelschicht – Stadt", "translation": "Kleines & mittleres Bürgertum: Händler, Handwerker, Beamte, Gelehrte"},
+  {"id": "preset-heft-gesellschaft-8", "term": "Mittelschicht – Land", "translation": "Bauern: Kleinbauern, mittlere Bauern; Handwerker"},
+  {"id": "preset-heft-gesellschaft-9", "term": "Unterschicht", "translation": "Bettler, Tagelöhner, Ungelehrte, Hilfsarbeiter"},
+  {"id": "preset-heft-gesellschaft-10", "term": "Was ist ein Tagelöhner?", "translation": "Jemand ohne feste Arbeit, der nur tageweise bezahlt wird (Unterschicht)"},
+  {"id": "preset-heft-gesellschaft-11", "term": "Unterschied Stände vs. Schichten", "translation": "Stände = rechtliche Ordnung nach Geburt (Klerus, Adel, 3. Stand)\nSchichten = Einteilung nach Besitz/Lebenslage (Ober-, Mittel-, Unterschicht)"}
+ ]},
+ {"id":"preset-heft-zeitstrahl","folder":"preset-heft","name":"Heft – Zeitstrahl 1789","cards":[
+  {"id": "preset-heft-zeitstrahl-0", "term": "5. Mai 1789", "translation": "Versammlung der Generalstände in Versailles"},
+  {"id": "preset-heft-zeitstrahl-1", "term": "17. Juni 1789", "translation": "Ausrufung der Nationalversammlung"},
+  {"id": "preset-heft-zeitstrahl-2", "term": "20. Juni 1789", "translation": "Ballhausschwur"},
+  {"id": "preset-heft-zeitstrahl-3", "term": "14. Juli 1789", "translation": "Bastille wird gewaltsam erobert"},
+  {"id": "preset-heft-zeitstrahl-4", "term": "17. Juli 1789", "translation": "König stimmt zu: Verfassungsberatung"},
+  {"id": "preset-heft-zeitstrahl-5", "term": "4. August 1789", "translation": "Abschaffung der Vorrechte des Adels"},
+  {"id": "preset-heft-zeitstrahl-6", "term": "26. August 1789", "translation": "Erklärung der Menschen- & Bürgerrechte"},
+  {"id": "preset-heft-zeitstrahl-7", "term": "5./6. Oktober 1789", "translation": "König wird von Marktfrauen nach Paris gezwungen"},
+  {"id": "preset-heft-zeitstrahl-8", "term": "2. November 1789", "translation": "Kirchliche Würdenträger verlieren Vorrechte; Verstaatlichung der Kirche(ngüter)"},
+  {"id": "preset-heft-zeitstrahl-9", "term": "Wann wurde die Bastille erobert?", "translation": "14. Juli 1789"},
+  {"id": "preset-heft-zeitstrahl-10", "term": "Wann wurde die Nationalversammlung ausgerufen?", "translation": "17. Juni 1789"},
+  {"id": "preset-heft-zeitstrahl-11", "term": "Wann verlor der Adel seine Vorrechte?", "translation": "4. August 1789"},
+  {"id": "preset-heft-zeitstrahl-12", "term": "Wann wurden die Menschenrechte erklärt?", "translation": "26. August 1789"},
+  {"id": "preset-heft-zeitstrahl-13", "term": "Wer zwang den König im Oktober 1789 nach Paris?", "translation": "Die Marktfrauen (5./6. Oktober 1789)"},
+  {"id": "preset-heft-zeitstrahl-14", "term": "Was passierte am 2. November 1789?", "translation": "Kirchliche Würdenträger verloren ihre Vorrechte, die Kirche(ngüter) wurde(n) verstaatlicht"}
+ ]},
+ {"id":"preset-heft-menschenrechte","folder":"preset-heft","name":"Heft – Menschenrechte (M4/M5)","cards":[
+  {"id": "preset-heft-menschenrechte-0", "term": "Wann wurde die Erklärung der Menschenrechte verabschiedet?", "translation": "Im August 1789 (26. August)"},
+  {"id": "preset-heft-menschenrechte-1", "term": "Art. 1", "translation": "Die Menschen werden frei und gleich an Rechten geboren und bleiben es für immer. Standesunterschiede dürfen nur im allgemeinen Nutzen begründet sein."},
+  {"id": "preset-heft-menschenrechte-2", "term": "Art. 2", "translation": "Ziel jeder politischen Vereinigung ist die Erhaltung der natürlichen und unveräußerlichen Rechte: Freiheit, Eigentum, Sicherheit und Widerstand gegen Unterdrückung."},
+  {"id": "preset-heft-menschenrechte-3", "term": "Die 4 natürlichen Rechte (Art. 2)", "translation": "Freiheit · Eigentum · Sicherheit · Widerstand gegen Unterdrückung"},
+  {"id": "preset-heft-menschenrechte-4", "term": "Art. 3", "translation": "Der Ursprung jeder Souveränität liegt in der Nation. Keine Person und keine Körperschaft darf Gewalt ausüben, die nicht von ihr ausgeht. (→ Volkssouveränität)"},
+  {"id": "preset-heft-menschenrechte-5", "term": "Art. 4", "translation": "Freiheit heißt, alles tun zu können, was einem anderen nicht schadet. Grenzen kann nur das Gesetz bestimmen."},
+  {"id": "preset-heft-menschenrechte-6", "term": "Art. 6", "translation": "Das Gesetz ist Ausdruck des allgemeinen Willens. Alle Bürger können daran mitwirken; es ist für alle gleich. Alle haben gleichen Zugang zu Ämtern – nur nach Fähigkeiten."},
+  {"id": "preset-heft-menschenrechte-7", "term": "Art. 9", "translation": "Jeder gilt als unschuldig, bis er schuldig gesprochen ist. Unnötige Härte bei einer Verhaftung wird bestraft. (Unschuldsvermutung)"},
+  {"id": "preset-heft-menschenrechte-8", "term": "Art. 10", "translation": "Niemand darf wegen seiner Meinung, auch in religiösen Fragen, belästigt werden – solange er die öffentliche Ordnung nicht stört."},
+  {"id": "preset-heft-menschenrechte-9", "term": "Art. 11", "translation": "Freier Austausch von Gedanken und Meinungen: Jeder darf frei reden, schreiben, drucken – muss aber für Missbrauch nach dem Gesetz einstehen. (Meinungs- & Pressefreiheit)"},
+  {"id": "preset-heft-menschenrechte-10", "term": "Art. 17", "translation": "Eigentum ist unverletzlich und heilig. Enteignung nur bei öffentlicher Notwendigkeit und nur gegen gerechte Entschädigung."},
+  {"id": "preset-heft-menschenrechte-11", "term": "Welcher Artikel: Unschuldsvermutung?", "translation": "Art. 9"},
+  {"id": "preset-heft-menschenrechte-12", "term": "Welcher Artikel: Pressefreiheit?", "translation": "Art. 11"},
+  {"id": "preset-heft-menschenrechte-13", "term": "Welcher Artikel: Volkssouveränität?", "translation": "Art. 3"},
+  {"id": "preset-heft-menschenrechte-14", "term": "Welcher Artikel: Eigentum ist heilig?", "translation": "Art. 17"},
+  {"id": "preset-heft-menschenrechte-15", "term": "Welcher Artikel: Religions- und Meinungsfreiheit?", "translation": "Art. 10"},
+  {"id": "preset-heft-menschenrechte-16", "term": "Gemälde von 1790 (M4): Was ist zu sehen?", "translation": "Die Erklärung wie Gesetzestafeln in Stein · links eine Frau (Frankreich) mit zerbrochenen Ketten · rechts ein Engel (Vernunft), der auf die Rechte zeigt · oben das Auge der Vorsehung"},
+  {"id": "preset-heft-menschenrechte-17", "term": "M4: Was bedeuten die zerbrochenen Ketten?", "translation": "Frankreich hat die Unterdrückung (Absolutismus, Ständeordnung) abgeschüttelt"},
+  {"id": "preset-heft-menschenrechte-18", "term": "M4: Was soll das Auge der Vorsehung zeigen?", "translation": "Die Rechte gelten als heilig und ewig – unter dem Schutz des „Höchsten Wesens“"},
+  {"id": "preset-heft-menschenrechte-19", "term": "Verfassung: Gibt es Menschenrechte immer?", "translation": "Nein – laut Heft sind sie nicht immer vorhanden bzw. werden nicht immer durchgeführt"}
+ ]},
+ {"id":"preset-heft-gewalten","folder":"preset-heft","name":"Heft – Verfassung & Gewaltenteilung","cards":[
+  {"id": "preset-heft-gewalten-0", "term": "Was ist eine Verfassung?", "translation": "Gesetz über den Staatsaufbau (bei uns: Grundgesetz)"},
+  {"id": "preset-heft-gewalten-1", "term": "Was regelt bzw. enthält eine Verfassung?", "translation": "Sie regelt die Gewaltenteilung und enthält z. B. auch die Menschenrechte"},
+  {"id": "preset-heft-gewalten-2", "term": "Zwei Arten von Recht", "translation": "Bundesrecht und Landesrecht"},
+  {"id": "preset-heft-gewalten-3", "term": "Wer beschließt bei uns die Gesetze?", "translation": "Das Parlament (Bundestag + Bundesrat)"},
+  {"id": "preset-heft-gewalten-4", "term": "Wer setzt die Gesetze um?", "translation": "Die Regierung mit Verwaltung (Polizei, Militär) – sie erlässt auch Verordnungen"},
+  {"id": "preset-heft-gewalten-5", "term": "Wer kontrolliert die Rechtmäßigkeit?", "translation": "Richter und andere Gerichte"},
+  {"id": "preset-heft-gewalten-6", "term": "Legislative", "translation": "Gesetzgebende Gewalt\n→ Abgeordnete der Nationalversammlung (Parlament)"},
+  {"id": "preset-heft-gewalten-7", "term": "Exekutive", "translation": "Ausführende Gewalt\n→ Minister, (heute) Bundeskanzler, andere Untergeordnete\n→ damals: + König (kein Bundeskanzler)"},
+  {"id": "preset-heft-gewalten-8", "term": "Judikative", "translation": "Richterliche Gewalt\n→ Kassationshof, Hochgericht, Richter & Geschworene der Gerichte, Friedensrichter"},
+  {"id": "preset-heft-gewalten-9", "term": "Besonderheit des Königs (1791)", "translation": "Er wurde nicht gewählt und hatte ein Vetorecht"},
+  {"id": "preset-heft-gewalten-10", "term": "Aktivbürger", "translation": "Wahlrecht aufgrund der Steuerleistung (Zensuswahlrecht)\nMänner über 25 Jahre (ca. 4 Mio.)"},
+  {"id": "preset-heft-gewalten-11", "term": "Wen wählten die Aktivbürger?", "translation": "Wahlmänner (45.000), Friedensrichter, Gemeindeverwaltungen"},
+  {"id": "preset-heft-gewalten-12", "term": "Wen wählten die Wahlmänner?", "translation": "Richter & Geschworene, Bischöfe & Priester, Departementsverwaltungen, Abgeordnete der Nationalversammlung"},
+  {"id": "preset-heft-gewalten-13", "term": "Gesamtbevölkerung Frankreichs um 1791", "translation": "ca. 25 Millionen"},
+  {"id": "preset-heft-gewalten-14", "term": "Was ist das Ergebnis des „Erfolgs der Revolutionäre“?", "translation": "Die Verfassung von 1791 → konstitutionelle Monarchie"},
+  {"id": "preset-heft-gewalten-15", "term": "Konstitutionelle Monarchie", "translation": "Es gibt weiter einen König, aber seine Macht ist durch die Verfassung begrenzt"}
+ ]},
+ {"id":"preset-heft-schaubild","folder":"preset-heft","name":"Heft – Verfassung 1791 (Schaubild M1)","cards":[
+  {"id": "preset-heft-schaubild-0", "term": "M1: Wie viele Abgeordnete hatte die Nationalversammlung?", "translation": "745"},
+  {"id": "preset-heft-schaubild-1", "term": "M1: Für wie lange wurde die Nationalversammlung gewählt?", "translation": "Für 2 Jahre"},
+  {"id": "preset-heft-schaubild-2", "term": "M1: Wer wählte die Nationalversammlung?", "translation": "Die 45.000 Wahlmänner"},
+  {"id": "preset-heft-schaubild-3", "term": "M1: Was macht die Nationalversammlung?", "translation": "Gesetzgebung, Aufsicht über das Militär, Antrag an das Hochgericht"},
+  {"id": "preset-heft-schaubild-4", "term": "M1: Rechte des Königs", "translation": "Veto gegen Gesetze · ernennt & entlässt Minister · Oberbefehl über das Militär"},
+  {"id": "preset-heft-schaubild-5", "term": "M1: Was beaufsichtigen die Minister?", "translation": "Die Departementsverwaltungen"},
+  {"id": "preset-heft-schaubild-6", "term": "M1: Kassationshof – wie entsteht er, was macht er?", "translation": "Wird gewählt; Einspruch gegen Urteile der Gerichte"},
+  {"id": "preset-heft-schaubild-7", "term": "M1: Wer wird direkt von den Aktivbürgern gewählt?", "translation": "Wahlmänner, Friedensrichter, Gemeindeverwaltungen"},
+  {"id": "preset-heft-schaubild-8", "term": "M1: Wer wird von den Wahlmännern gewählt?", "translation": "Nationalversammlung, Richter & Geschworene, Departementsverwaltungen, Bischöfe & Priester"},
+  {"id": "preset-heft-schaubild-9", "term": "Wie viele Passivbürger gab es?", "translation": "ca. 3 Millionen (ohne Stimmrecht)"},
+  {"id": "preset-heft-schaubild-10", "term": "Wer hatte 1791 kein Stimmrecht?", "translation": "3 Mio. Passivbürger, alle Frauen und Männer unter 25"},
+  {"id": "preset-heft-schaubild-11", "term": "Welcher Anteil war von politischer Mitwirkung ausgeschlossen?", "translation": "Über zwei Drittel der Bevölkerung"},
+  {"id": "preset-heft-schaubild-12", "term": "Wie viele der 25 Mio. durften wählen?", "translation": "ca. 4 Mio. (Aktivbürger) ≈ jeder Sechste"},
+  {"id": "preset-heft-schaubild-13", "term": "War die Verfassung von 1791 demokratisch?", "translation": "Nur teilweise: + Gewaltenteilung, gewählte Nationalversammlung\n– Zensuswahlrecht, indirekte Wahl, Frauen ausgeschlossen, König nicht gewählt mit Veto"}
  ]}
 ];
 
@@ -139,7 +247,7 @@ function addPresetDecks(data) {
     if (deleted[p.id] || data.decks.some(d => d.id === p.id)) return;
     data.decks.push({
       id: p.id, name: p.name, subject: 'geschichte', type: 'facts', sourceLang: 'de', targetLang: 'de',
-      folderId: deleted['preset-frzrev'] ? null : 'preset-frzrev',
+      folderId: deleted[p.folder || 'preset-frzrev'] ? null : (p.folder || 'preset-frzrev'),
       cards: p.cards.map(c => ({ ...c, masteryLevel: 0, box: 0 })),
       quiz: [], pages: [], createdAt: '2026-10-27T18:00:00.000Z'
     });
