@@ -1,9 +1,10 @@
-// Fertige Karteien zur Französischen Revolution (Geschichte), plus Karteien zu den Hefteinträgen aus dem Unterricht.
+// Fertige Karteien: Französische Revolution (Geschichte, inkl. Hefteinträge) und Sozialstaat (PoWi).
 // Werden einmal angelegt. Gelöschte Karteien kommen nicht zurück.
 
 const PRESET_FOLDERS = [
   { id: 'preset-frzrev', name: 'Französische Revolution', color: '#b7791f', subject: 'geschichte' },
-  { id: 'preset-heft', name: 'Frz. Revolution – Unterricht (Heft)', color: '#2b7aaf', subject: 'geschichte' }
+  { id: 'preset-heft', name: 'Frz. Revolution – Unterricht (Heft)', color: '#2b7aaf', subject: 'geschichte' },
+  { id: 'preset-sozialstaat', name: 'Sozialstaat', color: '#c43d65', subject: 'powi' }
 ];
 
 const PRESET_DECKS = [
@@ -268,6 +269,82 @@ const PRESET_DECKS = [
   {"id": "preset-heft-wichtig-28", "term": "1799", "translation": "Staatsstreich durch Napoleon Bonaparte → Ende der Revolution"},
   {"id": "preset-heft-wichtig-29", "term": "Wie endete die Französische Revolution?", "translation": "1799 mit dem Staatsstreich Napoleon Bonapartes"},
   {"id": "preset-heft-wichtig-30", "term": "Die Revolution in 5 Sätzen", "translation": "1. Frankreich pleite, Volk hungert, 3. Stand ohne Rechte\n2. 1789: 3. Stand nimmt sich die Macht\n3. 1791: Verfassung, König eingeschränkt\n4. 1792–94: Republik, König tot, Terror\n5. 1795–99: Bürger regieren schwach → Napoleon"}
+ ]},
+ {"id":"preset-sozial-ziele","folder":"preset-sozialstaat","subject":"powi","name":"Sozialstaat – Ziele & Prinzipien","cards":[
+  {"id": "preset-sozial-ziele-0", "term": "Grundidee des Sozialstaats", "translation": "Niemand ist allein: Der Staat schützt Menschen vor sozialen Risiken (Krankheit, Arbeitslosigkeit, Alter) und hilft Bedürftigen"},
+  {"id": "preset-sozial-ziele-1", "term": "Die 4 Ziele des Sozialstaats", "translation": "Soziale Sicherheit · soziale Gerechtigkeit · Chancengleichheit · Solidarität"},
+  {"id": "preset-sozial-ziele-2", "term": "Soziale Sicherheit", "translation": "Schutz vor finanziellen Notlagen"},
+  {"id": "preset-sozial-ziele-3", "term": "Soziale Gerechtigkeit", "translation": "Menschen sollen faire Chancen haben"},
+  {"id": "preset-sozial-ziele-4", "term": "Chancengleichheit", "translation": "Alle sollen möglichst ähnliche Möglichkeiten haben"},
+  {"id": "preset-sozial-ziele-5", "term": "Solidarität", "translation": "Menschen helfen sich gegenseitig"},
+  {"id": "preset-sozial-ziele-6", "term": "Solidarprinzip – Kerngedanke", "translation": "Menschen unterstützen sich gegenseitig: Wer Hilfe braucht, wird durch die Beiträge der anderen Versicherten unterstützt"},
+  {"id": "preset-sozial-ziele-7", "term": "Solidarprinzip: Wonach richtet sich der Beitrag?", "translation": "Nach der individuellen Leistungsfähigkeit (wer mehr verdient, zahlt mehr)"},
+  {"id": "preset-sozial-ziele-8", "term": "Solidarprinzip: Wonach richten sich die Leistungen?", "translation": "Nach dem Bedarf – nicht danach, wie viel jemand eingezahlt hat"},
+  {"id": "preset-sozial-ziele-9", "term": "Solidarprinzip in einem Satz", "translation": "Alle zahlen gemeinsam ein; wer Hilfe braucht, bekommt sie – unabhängig davon, wie viel er selbst eingezahlt hat"},
+  {"id": "preset-sozial-ziele-10", "term": "Beispiel Solidarprinzip (Krankenversicherung)", "translation": "Ein Gutverdiener zahlt hohe Beiträge, ist aber selten krank; ein Geringverdiener zahlt wenig, bekommt aber die gleiche Behandlung, wenn er krank ist"},
+  {"id": "preset-sozial-ziele-11", "term": "Wie wird der Sozialstaat finanziert?", "translation": "Über Steuern und Sozialabgaben (Beiträge von Arbeitnehmern und Arbeitgebern)"}
+ ]},
+ {"id":"preset-sozial-versicherungen","folder":"preset-sozialstaat","subject":"powi","name":"Sozialstaat – Die 5 Sozialversicherungen (M4)","cards":[
+  {"id": "preset-sozial-versicherungen-0", "term": "Die 5 gesetzlichen Sozialversicherungen", "translation": "Kranken-, Unfall-, Renten-, Arbeitslosen- und Pflegeversicherung"},
+  {"id": "preset-sozial-versicherungen-1", "term": "Gesetzliche Krankenversicherung – Aufgaben", "translation": "Erhaltung, Wiederherstellung oder Verbesserung der Gesundheit · zahlt medizinisch notwendige Hilfe bei Krankheit (außer Arbeitsunfällen) · zahlt Krankengeld, wenn der Arbeitgeber das Gehalt nicht mehr weiterzahlt"},
+  {"id": "preset-sozial-versicherungen-2", "term": "Wann zahlt die Krankenversicherung Krankengeld?", "translation": "Wenn der Arbeitgeber das Gehalt während einer Arbeitsunfähigkeit nicht mehr weiterzahlt"},
+  {"id": "preset-sozial-versicherungen-3", "term": "Was zahlt die Krankenversicherung NICHT?", "translation": "Arbeitsunfälle – dafür ist die Unfallversicherung zuständig"},
+  {"id": "preset-sozial-versicherungen-4", "term": "Gesetzliche Unfallversicherung – Aufgaben", "translation": "Verhütung von Arbeitsunfällen, Berufskrankheiten und Gesundheitsgefahren · nach Arbeitsunfällen Gesundheit und Leistungsfähigkeit wiederherstellen · Geldleistungen an Versicherte oder Hinterbliebene"},
+  {"id": "preset-sozial-versicherungen-5", "term": "Gesetzliche Rentenversicherung – Aufgaben", "translation": "Zahlt Altersrenten · sichert ab bei verminderter Erwerbsfähigkeit und beim Tod von Ehepartner oder Eltern · Reha-Maßnahmen, um die Erwerbsfähigkeit kranker und behinderter Menschen zu verbessern"},
+  {"id": "preset-sozial-versicherungen-6", "term": "Was ist Erwerbsfähigkeit?", "translation": "Die Fähigkeit, durch Arbeit Geld zu verdienen"},
+  {"id": "preset-sozial-versicherungen-7", "term": "Gesetzliche Arbeitslosenversicherung – Aufgaben", "translation": "Integration von Menschen in Berufsausbildung und Arbeit · Sicherung des Lebensunterhalts während der Arbeitslosigkeit"},
+  {"id": "preset-sozial-versicherungen-8", "term": "Gesetzliche Pflegeversicherung – Aufgaben", "translation": "Pflegebedürftigen ein selbstbestimmtes Leben ermöglichen · je nach Pflegegrad Geld- oder Sachleistungen für Grundpflege und Haushalt"},
+  {"id": "preset-sozial-versicherungen-9", "term": "Wovon hängt die Höhe der Pflegeleistungen ab?", "translation": "Vom Grad der Pflegebedürftigkeit (Pflegegrad)"},
+  {"id": "preset-sozial-versicherungen-10", "term": "Welche Versicherung zahlt nach einem Arbeitsunfall?", "translation": "Die gesetzliche Unfallversicherung"},
+  {"id": "preset-sozial-versicherungen-11", "term": "Welche Versicherung zahlt Hinterbliebenenrente (Tod der Eltern/des Ehepartners)?", "translation": "Die gesetzliche Rentenversicherung"},
+  {"id": "preset-sozial-versicherungen-12", "term": "Welche Versicherung hilft bei der Jobsuche?", "translation": "Die gesetzliche Arbeitslosenversicherung"}
+ ]},
+ {"id":"preset-sozial-bewertung","folder":"preset-sozialstaat","subject":"powi","name":"Sozialstaat – Vor- & Nachteile","cards":[
+  {"id": "preset-sozial-bewertung-0", "term": "Vorteile des Sozialstaats", "translation": "Hilfe bei Krankheit, Arbeitslosigkeit und Alter · weniger Armut · Zugang für alle zu Krankenversicherung und Rente · fördert sozialen Frieden"},
+  {"id": "preset-sozial-bewertung-1", "term": "Warum fördert der Sozialstaat den sozialen Frieden?", "translation": "Weil niemand völlig ohne Unterstützung bleibt"},
+  {"id": "preset-sozial-bewertung-2", "term": "Nachteile des Sozialstaats", "translation": "Muss über Steuern und Beiträge finanziert werden · hohe Kosten belasten den Staat · manche verlassen sich zu sehr auf staatliche Hilfe · hohe Abgaben für Arbeitnehmer und Unternehmen"},
+  {"id": "preset-sozial-bewertung-3", "term": "Kurzfassung: Sozialstaat", "translation": "Er schützt vor sozialen Risiken und hilft Bedürftigen. Dafür zahlen die Bürger Steuern und Sozialabgaben."},
+  {"id": "preset-sozial-bewertung-4", "term": "Größtes Problem des Sozialstaats", "translation": "Seine Leistungen kosten sehr viel Geld. Reichen Steuern und Abgaben nicht, muss der Staat Schulden machen."},
+  {"id": "preset-sozial-bewertung-5", "term": "Lohnt sich der Sozialstaat? (Fazit)", "translation": "Ja, wenn er Sicherheit und Frieden schafft – aber er muss bezahlbar bleiben und darf nicht zu sehr zur Abhängigkeit führen"}
+ ]},
+ {"id":"preset-sozial-modelle","folder":"preset-sozialstaat","subject":"powi","name":"Sozialstaat – Die 3 Sozialstaatsmodelle","cards":[
+  {"id": "preset-sozial-modelle-0", "term": "Die 3 Sozialstaatsmodelle", "translation": "Konservativ (kontinentaleuropäisch) · liberal (angelsächsisch) · sozialdemokratisch (skandinavisch)"},
+  {"id": "preset-sozial-modelle-1", "term": "Konservatives Modell – anderer Name & Beispiel", "translation": "Kontinentaleuropäischer Sozialstaat, z. B. Deutschland, Frankreich"},
+  {"id": "preset-sozial-modelle-2", "term": "Konservatives Modell – Finanzierung", "translation": "Über Sozialabgaben, die Arbeitnehmer und Arbeitgeber bezahlen"},
+  {"id": "preset-sozial-modelle-3", "term": "Konservatives Modell – Merkmale", "translation": "Bringt Ausgleich und Sicherheit · umverteilendes Steuersystem · Grundsicherung für jeden Bürger"},
+  {"id": "preset-sozial-modelle-4", "term": "Liberales Modell – anderer Name & Beispiele", "translation": "Angelsächsischer Sozialstaat, v. a. USA und Großbritannien"},
+  {"id": "preset-sozial-modelle-5", "term": "Liberales Modell – Merkmale", "translation": "Große Bereiche privat organisiert (z. B. Bildung, Gesundheit) · finanziert über Steuern · Vertrauen in den Markt und Eigenverantwortung · Sicherheit vor Armut gering"},
+  {"id": "preset-sozial-modelle-6", "term": "Kritik am liberalen Modell", "translation": "In den USA ging die Finanzkrise aus, und viele Menschen haben keine Krankenversicherung"},
+  {"id": "preset-sozial-modelle-7", "term": "Sozialdemokratisches Modell – anderer Name & Beispiele", "translation": "Skandinavisches Modell, z. B. Dänemark und Schweden"},
+  {"id": "preset-sozial-modelle-8", "term": "Sozialdemokratisches Modell – Merkmale", "translation": "Gegenmodell zum liberalen Sozialstaat · größtenteils über Steuern finanziert · umfassende Sozialleistungen für alle"},
+  {"id": "preset-sozial-modelle-9", "term": "Was verlangt das skandinavische Modell im Gegenzug?", "translation": "Ein hohes Maß an Flexibilität von den Arbeitnehmern, z. B. ist der Kündigungsschutz stark eingeschränkt"},
+  {"id": "preset-sozial-modelle-10", "term": "Welches Modell hat Deutschland?", "translation": "Das konservative (kontinentaleuropäische) Modell – beitragsfinanzierte Sozialversicherungen"},
+  {"id": "preset-sozial-modelle-11", "term": "Schweden – Kernmerkmal", "translation": "Universelle, steuerfinanzierte Leistungen für alle Bürger (sozialdemokratisch)"},
+  {"id": "preset-sozial-modelle-12", "term": "Schweden – Übernahme-Idee für Deutschland", "translation": "Elternzeit mit festen „Vätermonaten“ und mehr Kinderbetreuung"},
+  {"id": "preset-sozial-modelle-13", "term": "USA – Kernmerkmal", "translation": "Markt und Eigenverantwortung, keine Pflichtversicherungen (liberal)"},
+  {"id": "preset-sozial-modelle-14", "term": "USA – Übernahme-Idee für Deutschland", "translation": "Mehr Wettbewerb zwischen Versicherungen als Anreiz – aber mit Pflichtversicherung für alle kombiniert"},
+  {"id": "preset-sozial-modelle-15", "term": "Frankreich – Kernmerkmal", "translation": "Beitragsfinanzierte Sozialversicherungen wie in Deutschland (konservativ)"},
+  {"id": "preset-sozial-modelle-16", "term": "Frankreich – Übernahme-Idee für Deutschland", "translation": "Kostenlose, flächendeckende Vorschule ab 3 Jahren"}
+ ]},
+ {"id":"preset-sozial-rente","folder":"preset-sozialstaat","subject":"powi","name":"Sozialstaat – Rente","cards":[
+  {"id": "preset-sozial-rente-0", "term": "Umlageverfahren", "translation": "Die heutigen Arbeitnehmer zahlen Beiträge, damit werden die heutigen Rentner bezahlt. Wenn sie selbst in Rente gehen, zahlt die nächste Generation."},
+  {"id": "preset-sozial-rente-1", "term": "Nach welchem Verfahren funktioniert die gesetzliche Rente?", "translation": "Nach dem Umlageverfahren (Generationenvertrag)"},
+  {"id": "preset-sozial-rente-2", "term": "Die 3 Säulen der Altersvorsorge", "translation": "1. gesetzliche · 2. betriebliche · 3. private Altersvorsorge"},
+  {"id": "preset-sozial-rente-3", "term": "Warum gerät die Rente unter Druck?", "translation": "Immer weniger Arbeitnehmer finanzieren immer mehr Rentner, die länger leben und länger Rente beziehen"},
+  {"id": "preset-sozial-rente-4", "term": "Wie viele Beschäftigte kommen auf einen Rentner?", "translation": "Früher etwa sechs, heute nur noch zwei"},
+  {"id": "preset-sozial-rente-5", "term": "Pro höheres Rentenalter (4 Argumente)", "translation": "Menschen leben länger und können länger arbeiten · weniger Arbeitnehmer finanzieren mehr Rentner · Rentner beziehen länger Rente → Kosten steigen · ohne Änderung steigen die Beiträge weiter"},
+  {"id": "preset-sozial-rente-6", "term": "Contra höheres Rentenalter (4 Argumente)", "translation": "Viele schaffen es schon jetzt nicht bis 67 (v. a. körperliche Berufe) · Renten sind für viele schon zu niedrig, längere Arbeit = weniger Rente genießen · in Pflege- und Bauberufen steigt im Alter das Unfallrisiko · nicht alle bleiben gesund – manche erreichen die Rente nicht oder sind dann krank"},
+  {"id": "preset-sozial-rente-7", "term": "Bis zu welchem Alter muss man in Deutschland arbeiten?", "translation": "Bis 67 (Regelaltersgrenze)"},
+  {"id": "preset-sozial-rente-8", "term": "Lösungsvorschlag 1 für die Rente", "translation": "Mehr Zuwanderung: Mehr Menschen arbeiten hier und zahlen in die Rentenkasse ein → mehr Geld für Renten"},
+  {"id": "preset-sozial-rente-9", "term": "Lösungsvorschlag 2 für die Rente", "translation": "Alle Berufsgruppen einzahlen lassen: auch Selbstständige und Beamte → mehr Geld in der Rentenversicherung"},
+  {"id": "preset-sozial-rente-10", "term": "Wer zahlt bisher NICHT in die gesetzliche Rente ein?", "translation": "Vor allem Beamte und viele Selbstständige"}
+ ]},
+ {"id":"preset-sozial-pkv","folder":"preset-sozialstaat","subject":"powi","name":"Sozialstaat – Gesetzliche & private Krankenversicherung","cards":[
+  {"id": "preset-sozial-pkv-0", "term": "GKV und PKV", "translation": "GKV = gesetzliche Krankenversicherung · PKV = private Krankenversicherung"},
+  {"id": "preset-sozial-pkv-1", "term": "Was passiert, wenn GKV und PKV getrennt würden?", "translation": "Die PKV müsste eigene Arztpraxen und Krankenhäuser finanzieren – das wäre sehr teuer"},
+  {"id": "preset-sozial-pkv-2", "term": "Wer bezahlt heute größtenteils Praxen und Krankenhäuser?", "translation": "Größtenteils die gesetzlich Versicherten"},
+  {"id": "preset-sozial-pkv-3", "term": "Was würde dem Gesundheitssystem bei einer Trennung fehlen?", "translation": "Das Geld der Privatversicherten – Leistungen und Service würden sich wahrscheinlich nicht verbessern"},
+  {"id": "preset-sozial-pkv-4", "term": "Was wäre, wenn die PKV wegfiele?", "translation": "Leistungen und Service würden sich wahrscheinlich nicht verbessern, weil Geld von den Privatversicherten fehlt"}
  ]}
 ];
 
@@ -279,7 +356,7 @@ function addPresetDecks(data) {
   PRESET_DECKS.forEach(p => {
     if (deleted[p.id] || data.decks.some(d => d.id === p.id)) return;
     data.decks.push({
-      id: p.id, name: p.name, subject: 'geschichte', type: 'facts', sourceLang: 'de', targetLang: 'de',
+      id: p.id, name: p.name, subject: p.subject || 'geschichte', type: 'facts', sourceLang: 'de', targetLang: 'de',
       folderId: deleted[p.folder || 'preset-frzrev'] ? null : (p.folder || 'preset-frzrev'),
       cards: p.cards.map(c => ({ ...c, masteryLevel: 0, box: 0 })),
       quiz: [], pages: [], createdAt: '2026-10-27T18:00:00.000Z'
