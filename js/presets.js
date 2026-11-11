@@ -377,6 +377,12 @@ const PRESET_DECKS = [
   {"id":"preset-hindu-g9","term":"Trimurti","translation":"Die Dreiheit Brahma (Schöpfung), Vishnu (Erhaltung) und Shiva (Auflösung). Sie bilden einen Kreislauf."},
   {"id":"preset-hindu-g10","term":"Puja","translation":"Verehrung der Götter im Alltag: Opfergaben wie Blumen, Früchte, Licht und Wasser, meist im Tempel oder am Hausaltar, mit Gebeten."},
   {"id":"preset-hindu-g11","term":"Hinduismus ist vielfältig","translation":"Es gibt viele Gottesvorstellungen. Je nach Tradition ist Vishnu, Shiva oder eine Göttin die höchste Gottheit."}
+ ]},
+ {"id":"preset-hindu-purushartha","name":"Hinduismus: Die vier Purushartha","subject":"religion","folder":"preset-hindu","cards":[
+  {"id":"preset-hindu-p0","term":"Dharma","translation":"Pflicht, rechtes Handeln und die Ordnung der Welt"},
+  {"id":"preset-hindu-p1","term":"Artha","translation":"Besitz, Wohlstand, Erfolg und materielle Sicherheit"},
+  {"id":"preset-hindu-p2","term":"Kama","translation":"Lust, Liebe, sinnlicher Genuss und Lebensfreude"},
+  {"id":"preset-hindu-p3","term":"Moksha","translation":"Befreiung aus dem Kreislauf der Wiedergeburt, das höchste Ziel"}
  ]}
 ];
 
