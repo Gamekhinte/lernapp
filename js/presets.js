@@ -4,7 +4,8 @@
 const PRESET_FOLDERS = [
   { id: 'preset-frzrev', name: 'Französische Revolution', color: '#b7791f', subject: 'geschichte' },
   { id: 'preset-heft', name: 'Frz. Revolution – Unterricht (Heft)', color: '#2b7aaf', subject: 'geschichte' },
-  { id: 'preset-sozialstaat', name: 'Sozialstaat', color: '#c43d65', subject: 'powi' }
+  { id: 'preset-sozialstaat', name: 'Sozialstaat', color: '#c43d65', subject: 'powi' },
+  { id: 'preset-hindu', name: 'Hinduismus', color: '#8a6d3b', subject: 'religion' }
 ];
 
 const PRESET_DECKS = [
@@ -345,6 +346,37 @@ const PRESET_DECKS = [
   {"id": "preset-sozial-pkv-2", "term": "Wer bezahlt heute größtenteils Praxen und Krankenhäuser?", "translation": "Größtenteils die gesetzlich Versicherten"},
   {"id": "preset-sozial-pkv-3", "term": "Was würde dem Gesundheitssystem bei einer Trennung fehlen?", "translation": "Das Geld der Privatversicherten – Leistungen und Service würden sich wahrscheinlich nicht verbessern"},
   {"id": "preset-sozial-pkv-4", "term": "Was wäre, wenn die PKV wegfiele?", "translation": "Leistungen und Service würden sich wahrscheinlich nicht verbessern, weil Geld von den Privatversicherten fehlt"}
+ ]},
+ {"id":"preset-hindu-wichtig","name":"Hinduismus: Wichtige Begriffe","subject":"religion","folder":"preset-hindu","cards":[
+  {"id":"preset-hindu-w0","term":"Ahimsa","translation":"Nicht verletzen, Gewaltlosigkeit"},
+  {"id":"preset-hindu-w1","term":"Karma","translation":"Das Prinzip von Ursache und Wirkung: Jede Handlung hat Folgen"},
+  {"id":"preset-hindu-w2","term":"Reinkarnation","translation":"Wiedergeburt in ein neues Leben, basierend auf Karma"},
+  {"id":"preset-hindu-w3","term":"Veden","translation":"Ältere heilige Texte der indischen Literatur"},
+  {"id":"preset-hindu-w4","term":"Moksha","translation":"Befreiung aus dem Kreislauf der Wiedergeburt"},
+  {"id":"preset-hindu-w5","term":"Brahmana","translation":"Priester. Außerdem eine Textgattung mit Erklärungen zu den Ritualen der Veden"},
+  {"id":"preset-hindu-w6","term":"Mahabharata","translation":"Umfangreichstes Epos der Welt mit rund 110.000 Doppelversen"}
+ ]},
+ {"id":"preset-hindu-rest","name":"Hinduismus: Weitere Begriffe","subject":"religion","folder":"preset-hindu","cards":[
+  {"id":"preset-hindu-r0","term":"Manu-Samhita","translation":"Uraltes Gesetzbuch"},
+  {"id":"preset-hindu-r1","term":"Bandha","translation":"Karmische Konsequenzen, die an den Kreislauf binden"},
+  {"id":"preset-hindu-r2","term":"Atharva Veda","translation":"Teil der Veden"},
+  {"id":"preset-hindu-r3","term":"Padma Purana","translation":"Erzählwerk über die Götter"},
+  {"id":"preset-hindu-r4","term":"Shrimad Bhagavatam","translation":"Schrift der Hindus, ein Purana über Krishna als Form Vishnus"},
+  {"id":"preset-hindu-r5","term":"Mahatma","translation":"Große Seele"}
+ ]},
+ {"id":"preset-hindu-goetter","name":"Hinduismus: Götter und Göttinnen","subject":"religion","folder":"preset-hindu","cards":[
+  {"id":"preset-hindu-g0","term":"Brahman","translation":"Die unpersönliche, absolute Wirklichkeit. Merksatz: Brahma ist nicht Brahman."},
+  {"id":"preset-hindu-g1","term":"Brahma","translation":"Der Schöpfergott, erschafft die Welt und alle Lebewesen. Symbole: Veden, Lotus, Gebetsschnur, Wasserkrug. Reittier: Hamsa (Schwan oder Gans)."},
+  {"id":"preset-hindu-g2","term":"Sarasvati","translation":"Göttin des Wissens, der Musik, der Kunst und der Sprache. Brahmas Partnerin."},
+  {"id":"preset-hindu-g3","term":"Vishnu","translation":"Erhalter der Welt und der Weltordnung (Dharma). Blaue Haut, vier Arme, Muschel, Diskus, Keule, Lotus. Reittier: Garuda."},
+  {"id":"preset-hindu-g4","term":"Avatare","translation":"Irdische Inkarnationen Vishnus, um die Welt zu retten, zum Beispiel Rama und Krishna."},
+  {"id":"preset-hindu-g5","term":"Lakshmi","translation":"Göttin des Reichtums, des Glücks und des Wohlstands. Vishnus Partnerin."},
+  {"id":"preset-hindu-g6","term":"Shiva","translation":"Verwandler und Zerstörer: Auflösung, Verwandlung und Neuschöpfung. Symbole: Dreizack, Trommel, Schlange. Reittier: Nandi (Stier)."},
+  {"id":"preset-hindu-g7","term":"Parvati","translation":"Göttin der Liebe und der Kraft. Shivas Partnerin."},
+  {"id":"preset-hindu-g8","term":"Shakti","translation":"Die göttliche weibliche Energie und Kraft der Göttinnen."},
+  {"id":"preset-hindu-g9","term":"Trimurti","translation":"Die Dreiheit Brahma (Schöpfung), Vishnu (Erhaltung) und Shiva (Auflösung). Sie bilden einen Kreislauf."},
+  {"id":"preset-hindu-g10","term":"Puja","translation":"Verehrung der Götter im Alltag: Opfergaben wie Blumen, Früchte, Licht und Wasser, meist im Tempel oder am Hausaltar, mit Gebeten."},
+  {"id":"preset-hindu-g11","term":"Hinduismus ist vielfältig","translation":"Es gibt viele Gottesvorstellungen. Je nach Tradition ist Vishnu, Shiva oder eine Göttin die höchste Gottheit."}
  ]}
 ];
 
