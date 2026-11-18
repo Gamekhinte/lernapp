@@ -634,7 +634,8 @@ function cardSides(item, dir) {
     backImg: fwd ? null : item.card.img,
     frontLabel: vocab ? (fwd ? getLangConfig(lang).name : 'Deutsch') : (fwd ? 'Begriff' : 'Erklärung'),
     backLabel: vocab ? (fwd ? 'Deutsch' : getLangConfig(lang).name) : (fwd ? 'Erklärung' : 'Begriff'),
-    deckName: deck?.name || ''
+    deckName: deck?.name || '',
+    hand: String(deck?.id || '').startsWith('preset-voc-')
   };
 }
 
@@ -673,14 +674,14 @@ function renderPractice(container) {
           <div class="label">${esc(s.frontLabel)}</div>
           ${s.vocab ? `<button class="tts-btn" onclick='event.stopPropagation(); speakWord(${jsArg(s.front)}, "${s.frontLang}")' aria-label="Vorlesen">${icon('speaker', 16)}</button>` : ''}
           ${s.frontImg ? imgTag(s.frontImg, 'card-img') : ''}
-          <div class="word ${s.front.length > 60 ? 'long' : ''}">${esc(s.front)}</div>
+          <div class="word ${s.hand ? 'hand ' : ''}${s.front.length > 60 ? 'long' : ''}">${esc(s.front)}</div>
           <div class="tap-hint">Tippen zum Umdrehen</div>
         </div>
         <div class="card-face back">
           <div class="label">${esc(s.backLabel)}</div>
           ${s.vocab ? `<button class="tts-btn" onclick='event.stopPropagation(); speakWord(${jsArg(s.back)}, "${s.backLang}")' aria-label="Vorlesen">${icon('speaker', 16)}</button>` : ''}
           ${s.backImg ? imgTag(s.backImg, 'card-img') : ''}
-          <div class="word ${s.back.length > 60 ? 'long' : ''}">${esc(s.back)}</div>
+          <div class="word ${s.hand ? 'hand ' : ''}${s.back.length > 60 ? 'long' : ''}">${esc(s.back)}</div>
         </div>
       </div>
     </div>
@@ -733,7 +734,7 @@ function renderWritingItem(container, top, item) {
     <div class="card question-card center">
       <div class="mini-label">${esc(s.frontLabel)} → ${esc(s.backLabel)}</div>
       ${s.frontImg ? imgTag(s.frontImg, 'card-img') : ''}
-      <div class="question-text big">${esc(s.front)}</div>
+      <div class="question-text big${s.hand ? ' hand' : ''}">${esc(s.front)}</div>
       <input id="writingAnswer" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" ${fb ? 'disabled' : ''} value="${esc(fb?.typed || '')}" placeholder="Übersetzung eintippen" onkeydown="if(event.key==='Enter') checkWriting()">
       ${fb ? `
         <div class="feedback ${fb.ok ? 'ok' : 'bad'}">${fb.ok ? 'Richtig:' : 'Richtig wäre:'} <b>${esc(s.back)}</b></div>
@@ -778,7 +779,7 @@ function renderSpeechItem(container, top, item) {
   container.innerHTML = `${top}
     <div class="card question-card center">
       <div class="mini-label">Sag es auf ${esc(getLangConfig(s.backLang).name)}</div>
-      <div class="question-text big">${esc(s.front)}</div>
+      <div class="question-text big${s.hand ? ' hand' : ''}">${esc(s.front)}</div>
       <button class="btn btn-outline btn-sm" style="width:auto; margin:0 auto 12px;" onclick='speakWord(${jsArg(s.back)}, "${s.backLang}")'>${icon('speaker', 15)} Anhören</button>
       <div class="speech-box">
         <button class="mic-btn ${sp.recording ? 'recording' : ''}" onclick='startSpeech(${jsArg(s.back)}, "${s.backLang}")' aria-label="Aufnehmen">${icon('mic', 28)}</button>
