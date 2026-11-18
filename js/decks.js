@@ -619,6 +619,17 @@ function startPractice({ title, subject, mode, dir, shuffle: doShuffle, items, r
   go('practice');
 }
 
+// Handschrift-Effekt: jeder Buchstabe bekommt eine leicht andere Neigung, Höhe und Größe
+function handify(text) {
+  let seed = 7;
+  for (const ch of String(text)) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  return String(text).split(' ').map(word => '<span style="white-space:nowrap">' + [...word].map(ch => {
+    const rot = ((rnd() - .5) * 11).toFixed(1), y = ((rnd() - .5) * 5).toFixed(1), sc = (.86 + rnd() * .3).toFixed(2), x = ((rnd() - .5) * 1.6).toFixed(1);
+    return `<span class="hl" style="transform:translate(${x}px,${y}px) rotate(${rot}deg) scale(${sc})">${esc(ch)}</span>`;
+  }).join('') + '</span>').join(' ');
+}
+
 function cardSides(item, dir) {
   const deck = state.data.decks.find(d => d.id === item.deckId);
   const vocab = deck?.type === 'vocab';
@@ -674,14 +685,14 @@ function renderPractice(container) {
           <div class="label">${esc(s.frontLabel)}</div>
           ${s.vocab ? `<button class="tts-btn" onclick='event.stopPropagation(); speakWord(${jsArg(s.front)}, "${s.frontLang}")' aria-label="Vorlesen">${icon('speaker', 16)}</button>` : ''}
           ${s.frontImg ? imgTag(s.frontImg, 'card-img') : ''}
-          <div class="word ${s.hand ? 'hand ' : ''}${s.front.length > 60 ? 'long' : ''}">${esc(s.front)}</div>
+          <div class="word ${s.hand ? 'hand ' : ''}${s.front.length > 60 ? 'long' : ''}">${s.hand ? handify(s.front) : esc(s.front)}</div>
           <div class="tap-hint">Tippen zum Umdrehen</div>
         </div>
         <div class="card-face back">
           <div class="label">${esc(s.backLabel)}</div>
           ${s.vocab ? `<button class="tts-btn" onclick='event.stopPropagation(); speakWord(${jsArg(s.back)}, "${s.backLang}")' aria-label="Vorlesen">${icon('speaker', 16)}</button>` : ''}
           ${s.backImg ? imgTag(s.backImg, 'card-img') : ''}
-          <div class="word ${s.hand ? 'hand ' : ''}${s.back.length > 60 ? 'long' : ''}">${esc(s.back)}</div>
+          <div class="word ${s.hand ? 'hand ' : ''}${s.back.length > 60 ? 'long' : ''}">${s.hand ? handify(s.back) : esc(s.back)}</div>
         </div>
       </div>
     </div>
@@ -734,7 +745,7 @@ function renderWritingItem(container, top, item) {
     <div class="card question-card center">
       <div class="mini-label">${esc(s.frontLabel)} → ${esc(s.backLabel)}</div>
       ${s.frontImg ? imgTag(s.frontImg, 'card-img') : ''}
-      <div class="question-text big${s.hand ? ' hand' : ''}">${esc(s.front)}</div>
+      <div class="question-text big${s.hand ? ' hand' : ''}">${s.hand ? handify(s.front) : esc(s.front)}</div>
       <input id="writingAnswer" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" ${fb ? 'disabled' : ''} value="${esc(fb?.typed || '')}" placeholder="Übersetzung eintippen" onkeydown="if(event.key==='Enter') checkWriting()">
       ${fb ? `
         <div class="feedback ${fb.ok ? 'ok' : 'bad'}">${fb.ok ? 'Richtig:' : 'Richtig wäre:'} <b>${esc(s.back)}</b></div>
@@ -779,7 +790,7 @@ function renderSpeechItem(container, top, item) {
   container.innerHTML = `${top}
     <div class="card question-card center">
       <div class="mini-label">Sag es auf ${esc(getLangConfig(s.backLang).name)}</div>
-      <div class="question-text big${s.hand ? ' hand' : ''}">${esc(s.front)}</div>
+      <div class="question-text big${s.hand ? ' hand' : ''}">${s.hand ? handify(s.front) : esc(s.front)}</div>
       <button class="btn btn-outline btn-sm" style="width:auto; margin:0 auto 12px;" onclick='speakWord(${jsArg(s.back)}, "${s.backLang}")'>${icon('speaker', 15)} Anhören</button>
       <div class="speech-box">
         <button class="mic-btn ${sp.recording ? 'recording' : ''}" onclick='startSpeech(${jsArg(s.back)}, "${s.backLang}")' aria-label="Aufnehmen">${icon('mic', 28)}</button>
