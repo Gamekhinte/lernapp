@@ -630,12 +630,12 @@ function handify(text) {
     const wTilt = (rnd() - .5) * 5, slope = (rnd() - .5) * 3.2;
     drift += (rnd() - .5) * 2;
     const letters = [...word].map((ch, i) => {
-      const rot = (wTilt + (rnd() - .5) * 9).toFixed(1);
-      const y = (drift + slope * i + (rnd() - .5) * 3.4).toFixed(1);
-      const sc = (.88 + rnd() * .26).toFixed(2);
+      const rot = (wTilt * .4 + (rnd() - .5) * 3.5).toFixed(1);
+      const y = (drift * .4 + slope * i * .4 + (rnd() - .5) * 1.2).toFixed(1);
+      const sc = (.96 + rnd() * .08).toFixed(2);
       const x = ((rnd() - .5) * 1.4).toFixed(1);
       const ls = ((rnd() - .45) * 1.8).toFixed(1);
-      const op = (.78 + rnd() * .22).toFixed(2);   // Stiftdruck: mal dunkler, mal heller
+      const op = (.88 + rnd() * .12).toFixed(2);   // Stiftdruck: mal dunkler, mal heller
       return `<span class="hl" style="transform:translate(${x}px,${y}px) rotate(${rot}deg) scale(${sc});margin-right:${ls}px;opacity:${op}">${esc(ch)}</span>`;
     }).join('');
     return '<span style="white-space:nowrap">' + letters + '</span>';

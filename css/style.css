@@ -1,3 +1,4 @@
+@font-face { font-family: 'MeineSchrift'; src: url('../fonts/MeineSchrift.ttf') format('truetype'); font-display: swap; }
 :root {
   --paper: #f4efdf;
   --paper-card: #fdfbf7;
@@ -692,11 +693,11 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .plan-hint { border-left: 8px solid var(--accent); }
 
 /* Handschrift für die Englisch-Vokabelkarten (krakelig, wie von Hand) */
-.hand { font-family: 'Gloria Hallelujah', 'Segoe Script', cursive !important; font-weight: 400 !important; }
+.hand { font-family: 'MeineSchrift', 'Gloria Hallelujah', 'Segoe Script', cursive !important; font-weight: 400 !important; }
 .hand .hl { display: inline-block; color: #1f2a55; text-shadow: 0 0 .6px rgba(31,42,85,.55), .4px .3px .8px rgba(31,42,85,.25); }
-.card-face .word.hand { font-size: 26px; line-height: 1.4; transform: skewX(-7deg); }
+.card-face .word.hand { font-size: 30px; line-height: 1.4; }
 .card-face .word.hand.long { font-size: 18px; }
-.question-text.hand { font-size: 26px; transform: skewX(-7deg); }
+.question-text.hand { font-size: 30px; }
 
 /* Schreibfläche für Handschrift-Eingabe */
 .pen-pad { display: block; width: 100%; height: 190px; margin-top: 12px; background: #fffdf6; border: 2px solid var(--ink, #1a1816); border-radius: 8px; touch-action: none; }
