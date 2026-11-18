@@ -693,7 +693,7 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 
 /* Handschrift für die Englisch-Vokabelkarten (krakelig, wie von Hand) */
 .hand { font-family: 'Gloria Hallelujah', 'Segoe Script', cursive !important; font-weight: 400 !important; }
-.hand .hl { display: inline-block; }
+.hand .hl { display: inline-block; color: #1f2a55; text-shadow: 0 0 .6px rgba(31,42,85,.55), .4px .3px .8px rgba(31,42,85,.25); }
 .card-face .word.hand { font-size: 26px; line-height: 1.4; transform: skewX(-7deg); }
 .card-face .word.hand.long { font-size: 18px; }
 .question-text.hand { font-size: 26px; transform: skewX(-7deg); }

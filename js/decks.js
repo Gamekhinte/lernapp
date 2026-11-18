@@ -624,10 +624,22 @@ function handify(text) {
   let seed = 7;
   for (const ch of String(text)) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
   const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
-  return String(text).split(' ').map(word => '<span style="white-space:nowrap">' + [...word].map(ch => {
-    const rot = ((rnd() - .5) * 11).toFixed(1), y = ((rnd() - .5) * 5).toFixed(1), sc = (.86 + rnd() * .3).toFixed(2), x = ((rnd() - .5) * 1.6).toFixed(1);
-    return `<span class="hl" style="transform:translate(${x}px,${y}px) rotate(${rot}deg) scale(${sc})">${esc(ch)}</span>`;
-  }).join('') + '</span>').join(' ');
+  let drift = 0;
+  return String(text).split(' ').map(word => {
+    // jedes Wort hat eine eigene Neigung und wandert leicht über die Zeile
+    const wTilt = (rnd() - .5) * 5, slope = (rnd() - .5) * 3.2;
+    drift += (rnd() - .5) * 2;
+    const letters = [...word].map((ch, i) => {
+      const rot = (wTilt + (rnd() - .5) * 9).toFixed(1);
+      const y = (drift + slope * i + (rnd() - .5) * 3.4).toFixed(1);
+      const sc = (.88 + rnd() * .26).toFixed(2);
+      const x = ((rnd() - .5) * 1.4).toFixed(1);
+      const ls = ((rnd() - .45) * 1.8).toFixed(1);
+      const op = (.78 + rnd() * .22).toFixed(2);   // Stiftdruck: mal dunkler, mal heller
+      return `<span class="hl" style="transform:translate(${x}px,${y}px) rotate(${rot}deg) scale(${sc});margin-right:${ls}px;opacity:${op}">${esc(ch)}</span>`;
+    }).join('');
+    return '<span style="white-space:nowrap">' + letters + '</span>';
+  }).join('<span style="display:inline-block;width:' + (0.28 + rnd() * .12).toFixed(2) + 'em"></span>');
 }
 
 function cardSides(item, dir) {
