@@ -739,24 +739,91 @@ function pickChoice(i) {
 
 function renderWritingItem(container, top, item) {
   const pr = state.practice;
+  if (pr.pen === undefined) pr.pen = localStorage.getItem('writing-pen') === '1';
   const s = cardSides(item, pr.dir);
   const fb = pr.feedback;
+  const input = pr.pen
+    ? (fb ? (fb.typed ? `<div class="mini-label" style="margin-top:12px;">Erkannt: „${esc(fb.typed)}“</div>` : '')
+          : `<canvas id="penPad" class="pen-pad" aria-label="Hier mit dem Finger oder Stift schreiben"></canvas>
+             <div class="mini-label" style="margin-top:6px;">Mit Finger oder Stift schreiben</div>`)
+    : `<input id="writingAnswer" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" ${fb ? 'disabled' : ''} value="${esc(fb?.typed || '')}" placeholder="Übersetzung eintippen" onkeydown="if(event.key==='Enter') checkWriting()">`;
   container.innerHTML = `${top}
     <div class="card question-card center">
       <div class="mini-label">${esc(s.frontLabel)} → ${esc(s.backLabel)}</div>
       ${s.frontImg ? imgTag(s.frontImg, 'card-img') : ''}
       <div class="question-text big${s.hand ? ' hand' : ''}">${s.hand ? handify(s.front) : esc(s.front)}</div>
-      <input id="writingAnswer" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" ${fb ? 'disabled' : ''} value="${esc(fb?.typed || '')}" placeholder="Übersetzung eintippen" onkeydown="if(event.key==='Enter') checkWriting()">
+      ${input}
       ${fb ? `
         <div class="feedback ${fb.ok ? 'ok' : 'bad'}">${fb.ok ? 'Richtig:' : 'Richtig wäre:'} <b>${esc(s.back)}</b></div>
-        ${fb.ok ? '' : `<button class="btn btn-outline btn-sm" style="margin-bottom:10px;" onclick="overrideWriting()">War nur ein Tippfehler</button>`}
+        ${fb.ok ? '' : `<button class="btn btn-outline btn-sm" style="margin-bottom:10px;" onclick="overrideWriting()">${pr.pen ? 'Hatte ich richtig' : 'War nur ein Tippfehler'}</button>`}
         <button class="btn btn-primary" id="nextBtn" onclick="nextItem()">Weiter</button>`
       : `<div class="row-2" style="margin-top:14px;">
           <button class="btn btn-outline" onclick="checkWriting(true)">Lösung zeigen</button>
-          <button class="btn btn-primary" onclick="checkWriting()">Prüfen</button>
-        </div>`}
+          ${pr.pen ? `<button class="btn btn-outline" onclick="penClear()">Löschen</button>` : ''}
+          <button class="btn btn-primary" id="checkBtn" onclick="${pr.pen ? 'penCheck()' : 'checkWriting()'}">Prüfen</button>
+        </div>
+        <button class="btn btn-outline btn-sm" style="margin-top:10px;" onclick="togglePen()">${pr.pen ? '⌨️ Lieber tippen' : '✍️ Per Hand schreiben'}</button>`}
     </div>`;
-  setTimeout(() => (fb ? document.getElementById('nextBtn') : document.getElementById('writingAnswer'))?.focus(), 30);
+  if (pr.pen && !fb) setTimeout(initPenPad, 0);
+  else setTimeout(() => (fb ? document.getElementById('nextBtn') : document.getElementById('writingAnswer'))?.focus(), 30);
+}
+
+// ---- Handschrift-Eingabe (ohne Tastatur) ----
+let penDirty = false;
+function togglePen() {
+  const pr = state.practice;
+  pr.pen = !pr.pen;
+  localStorage.setItem('writing-pen', pr.pen ? '1' : '0');
+  render();
+}
+function initPenPad() {
+  const c = document.getElementById('penPad');
+  if (!c) return;
+  const r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+  const ctx = c.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1a1816';
+  penDirty = false;
+  let drawing = false;
+  const pos = e => { const b = c.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+  c.onpointerdown = e => { e.preventDefault(); drawing = true; c.setPointerCapture(e.pointerId); const [x, y] = pos(e); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + .1, y + .1); ctx.stroke(); penDirty = true; };
+  c.onpointermove = e => { if (!drawing) return; e.preventDefault(); const [x, y] = pos(e); ctx.lineTo(x, y); ctx.stroke(); };
+  const end = () => { drawing = false; };
+  c.onpointerup = end; c.onpointercancel = end;
+}
+function penClear() {
+  const c = document.getElementById('penPad');
+  if (!c) return;
+  c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  penDirty = false;
+}
+async function penCheck() {
+  const c = document.getElementById('penPad');
+  if (!c) return;
+  if (!penDirty) return toast('Schreib erst etwas auf die Fläche.');
+  if (!hasAiKey()) return toast('Zum Prüfen braucht die App deinen KI-Key. Tipp auf „Lösung zeigen“ und bewerte dich selbst.');
+  const btn = document.getElementById('checkBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Lese …'; }
+  try {
+    const tmp = document.createElement('canvas');
+    tmp.width = c.width; tmp.height = c.height;
+    const t = tmp.getContext('2d');
+    t.fillStyle = '#ffffff'; t.fillRect(0, 0, tmp.width, tmp.height);
+    t.drawImage(c, 0, 0);
+    const img = tmp.toDataURL('image/jpeg', 0.85).split(',')[1];
+    const res = await aiAsk('Das Bild zeigt ein handgeschriebenes Wort oder eine kurze Wendung (Deutsch oder Englisch). Gib den Text genau so zurück, wie er geschrieben steht, ohne Fehler zu korrigieren. Antworte nur als JSON: {"text":"..."}', [img]);
+    const typed = String(res?.text || '').trim();
+    const pr = state.practice;
+    const item = pr.queue[pr.index];
+    const ok = !!typed && answerMatches(typed, cardSides(item, pr.dir).back);
+    pr.feedback = { ok, typed };
+    scoreItem(ok);
+    render();
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Prüfen'; }
+    toast('Das hat nicht geklappt: ' + (err.message || 'Fehler'));
+  }
 }
 
 function checkWriting(giveUp = false) {
