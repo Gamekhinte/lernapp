@@ -52,11 +52,14 @@ async function syncScp({ silent = false } = {}) {
     s.entries = data.entries || [];
     s.menu = data.menu || [];
     s.pages = data.pages || [];
+    if (data.results) s.results = data.results;
     s.lastSync = new Date().toISOString();
     s.lastError = null;
     const added = importScpExams();
+    const results = importScpResults();
     saveData();
     if (added) toast(`${added} Arbeit${added > 1 ? 'en' : ''} aus dem SCP eingetragen`);
+    else if (results) toast(`${results} Arbeit${results > 1 ? 'en' : ''} bei den Schulaufgaben`);
     else if (!silent) toast('SCP ist aktuell.');
     if (added) autoFindTopics();
     return true;
@@ -66,7 +69,7 @@ async function syncScp({ silent = false } = {}) {
     if (!silent) toast('SCP: ' + err.message);
     return false;
   } finally {
-    if (['home', 'untis', 'plan'].includes(state.screen)) render();
+    if (['home', 'untis', 'plan', 'schoolwork'].includes(state.screen)) render();
   }
 }
 
@@ -132,6 +135,7 @@ function scpCardHtml() {
         ${scpPassword() ? `<button class="btn btn-primary" onclick="syncScp()">${icon('refresh', 16)} Jetzt abrufen</button>` : `<button class="btn btn-primary" onclick="go('untis', {scpEdit:true})">Passwort eingeben</button>`}
         <button class="btn btn-outline" onclick="disconnectScp()">Trennen</button>
       </div>
+      <button class="btn btn-outline" style="margin-top:10px;" onclick="go('schoolwork')">${icon('list', 16)} Schulaufgaben: Verbesserung und Abheften</button>
       ${upcoming.length ? `<div style="margin-top:12px;">${upcoming.slice(0, 15).map(e => {
         const subj = scpSubject(e.text);
         return `<div class="task-row"><div class="task-text"><span>${esc(e.text)}</span><small>${dateLabel(e.date)}${isScpExam(e) ? ' · Arbeit' : ''}${subj ? ' · ' + esc(getSubject(subj).name) : ''}</small></div></div>`;
@@ -161,7 +165,7 @@ async function connectScp() {
 function disconnectScp() {
   if (!confirm('SCP trennen? Eingetragene Arbeiten bleiben im Lernplan.')) return;
   localStorage.removeItem(SCP_PW_KEY);
-  Object.assign(scpData(), { email: '', entries: [], menu: [], pages: [], lastSync: null, lastError: null });
+  Object.assign(scpData(), { email: '', entries: [], results: null, menu: [], pages: [], lastSync: null, lastError: null });
   saveData();
   go('untis');
 }

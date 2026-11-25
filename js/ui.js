@@ -113,7 +113,7 @@ function renderNav() {
   nav.hidden = false;
   const active = {
     subject: 'subjects', deckEdit: 'subjects', deckSetup: 'subjects', summary: 'home', mathTopic: 'subjects',
-    examSetup: 'home', examResult: 'home', onenote: 'home', untis: 'profile', examEdit: 'plan', examPlan: 'plan', history: 'profile'
+    examSetup: 'home', examResult: 'home', onenote: 'home', schoolwork: 'home', untis: 'profile', examEdit: 'plan', examPlan: 'plan', history: 'profile'
   }[state.screen] || state.screen;
   // Leiste nur einmal bauen, danach nur umschalten, damit der Strich wandern kann
   if (!nav.dataset.built) {
