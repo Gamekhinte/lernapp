@@ -38,9 +38,14 @@ function scpSubject(text) {
   return null;
 }
 
+let scpChanges = 0, scpSyncing = false;
 async function syncScp({ silent = false } = {}) {
   const s = scpData();
-  if (!s.email || !scpPassword()) return false;
+  if (scpSyncing || !s.email || !scpPassword()) return false;
+  scpSyncing = true;
+  // Stiller Abruf alle 5 Minuten: nur neu zeichnen, wenn sich etwas geändert hat (sonst gehen Eingaben verloren)
+  let changed = !silent;
+  const hadError = !!s.lastError;
   try {
     const res = await fetch(SCP_FN, {
       method: 'POST',
@@ -55,36 +60,57 @@ async function syncScp({ silent = false } = {}) {
     if (data.results) s.results = data.results;
     s.lastSync = new Date().toISOString();
     s.lastError = null;
+    scpChanges = 0;
     const added = importScpExams();
     const results = importScpResults();
     saveData();
-    if (added) toast(`${added} Arbeit${added > 1 ? 'en' : ''} aus dem SCP eingetragen`);
+    if (scpChanges) schedulePushSoon();
+    if (scpChanges) toast('Termin im SCP geändert, Lernplan angepasst.');
+    else if (added) toast(`${added} Arbeit${added > 1 ? 'en' : ''} aus dem SCP eingetragen`);
     else if (results) toast(`${results} Arbeit${results > 1 ? 'en' : ''} bei den Schulaufgaben`);
     else if (!silent) toast('SCP ist aktuell.');
+    if (added || results || scpChanges || hadError) changed = true;
     if (added) autoFindTopics();
     return true;
   } catch (err) {
+    if (s.lastError !== err.message) changed = true;
     s.lastError = err.message;
     saveData();
     if (!silent) toast('SCP: ' + err.message);
     return false;
   } finally {
-    if (['home', 'untis', 'plan', 'schoolwork'].includes(state.screen)) render();
+    scpSyncing = false;
+    if (changed && ['home', 'untis', 'plan', 'schoolwork'].includes(state.screen)) render();
   }
 }
 
-// Termine, die nach Arbeit klingen, als Arbeit mit Lernplan eintragen
+// Termine, die nach Arbeit klingen, als Arbeit mit Lernplan eintragen.
+// Verschiebt das SCP eine Arbeit, wandert sie im Plan mit; fällt sie im SCP weg, fliegt sie raus.
 function importScpExams() {
   const s = scpData();
   const today = todayStr();
   const ignored = untisData().ignoredExams;
-  let added = 0;
+  const current = [];
   s.entries.forEach(e => {
     if (e.date < today || !isScpExam(e)) return;
     const subjectId = scpSubject(e.text);
-    if (!subjectId) return;
-    const id = 'scp-' + e.date + '-' + subjectId;
+    if (subjectId) current.push({ e, subjectId, id: 'scp-' + e.date + '-' + subjectId });
+  });
+  const currentIds = new Set(current.map(c => c.id));
+  // Nur aus dem SCP angelegte Arbeiten, deren Termin dort nicht mehr steht
+  const stale = () => state.data.exams.filter(x => x.scpId && !x.untisId && x.date >= today && !currentIds.has(x.scpId));
+  let added = 0;
+  current.forEach(({ e, subjectId, id }) => {
     if (ignored.includes(id) || state.data.exams.some(x => x.scpId === id)) return;
+    // Neuer Termin für eine schon eingetragene Arbeit im selben Fach: verschieben statt doppelt
+    const moved = stale().find(x => x.subject === subjectId);
+    if (moved) {
+      Object.assign(moved, { scpId: id, date: e.date, note: e.text });
+      moved.tasks = generatePlan(moved, moved.tasks);
+      touch(moved);
+      scpChanges++;
+      return;
+    }
     // Schon aus Untis oder von Hand eingetragen? Dann nur den Text ergänzen
     const twin = state.data.exams.find(x => x.subject === subjectId && Math.abs(daysBetween(x.date, e.date)) <= 1);
     if (twin) {
@@ -101,6 +127,16 @@ function importScpExams() {
     state.data.exams.push(exam);
     added++;
   });
+  // Nur aufräumen, wenn der Abruf überhaupt Termine geliefert hat
+  if (s.entries.length) {
+    const gone = stale();
+    if (gone.length) {
+      gone.forEach(x => markDeleted(x.id));
+      state.data.exams = state.data.exams.filter(x => !gone.includes(x));
+      rebuildAllPlans();
+      scpChanges += gone.length;
+    }
+  }
   return added;
 }
 
