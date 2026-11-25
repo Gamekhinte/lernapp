@@ -152,8 +152,14 @@ function importUntisExams() {
 async function initUntis() {
   const stale = t => !t || (Date.now() - new Date(t)) / 60000 > 60;
   if (untisReady() && stale(untisData().lastSync)) await syncUntis({ silent: true });
-  if (scpData().email && scpPassword() && stale(scpData().lastSync)) await syncScp({ silent: true });
-  setInterval(() => { syncUntis({ silent: true }); syncScp({ silent: true }); }, 60 * 60000);
+  // SCP alle 5 Minuten, solange die App offen ist, und beim Zurückkehren in die App
+  const scpStale = () => !scpData().lastSync || (Date.now() - new Date(scpData().lastSync)) / 60000 >= 5;
+  if (scpData().email && scpPassword() && scpStale()) await syncScp({ silent: true });
+  setInterval(() => syncUntis({ silent: true }), 60 * 60000);
+  setInterval(() => syncScp({ silent: true }), 5 * 60000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && scpStale()) syncScp({ silent: true });
+  });
 }
 
 // ---------- Daten für die Startseite ----------
@@ -324,7 +330,7 @@ function renderUntis(container) {
       </details>` : ''}
     <h3 class="group-title">SCP</h3>
     ${scpCardHtml()}
-    <p class="note center">Arbeiten aus Untis und dem SCP landen automatisch im Lernplan. Abgerufen wird beim Öffnen und jede Stunde.</p>
+    <p class="note center">Arbeiten aus Untis und dem SCP landen automatisch im Lernplan. Untis wird jede Stunde abgerufen, das SCP alle 5 Minuten.</p>
   `;
 }
 

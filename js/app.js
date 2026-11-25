@@ -20,7 +20,8 @@ const SCREENS = {
   history: renderHistory,
   onenote: renderOneNote,
   oneTopic: renderOneTopic,
-  untis: renderUntis
+  untis: renderUntis,
+  schoolwork: renderSchoolwork
 };
 
 function render() {
@@ -80,6 +81,7 @@ function renderHome(container) {
     ${onboarding}
     ${exams.slice(0, 2).map(examBanner).join('')}
     ${untisHomeCards()}
+    ${schoolworkHomeCard()}
     ${tasks.length ? `<div class="card"><h3 class="card-title">Heute dran</h3>${tasks.map(({ exam, task }) => taskRow(exam, task)).join('')}</div>` : ''}
     ${due ? `<button class="btn btn-primary big-btn" onclick="startDueReview()">${icon('repeat')} ${due} Karte${due > 1 ? 'n' : ''} wiederholen</button>` : ''}
     <h3 class="group-title">Fächer</h3>

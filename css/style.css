@@ -126,6 +126,7 @@ h1 { font-family: 'Space Mono', monospace; font-size: 24px; letter-spacing: -1px
   transition: filter .1s, transform .1s, box-shadow .1s;
   text-align: center;
 }
+a.btn { text-decoration: none; box-sizing: border-box; }
 .btn:hover { filter: brightness(.9); }
 .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
 .btn:disabled { opacity: .45; cursor: default; filter: none; }

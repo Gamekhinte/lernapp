@@ -36,6 +36,7 @@ function mergeData(a, b) {
   out.folders = byId(a.folders, b.folders, (x, y) => aNewer ? x : y).filter(alive);
   out.customSubjects = byId(a.customSubjects, b.customSubjects, (x, y) => aNewer ? x : y).filter(alive);
   out.mathSets = byId(a.mathSets, b.mathSets, (x, y) => (x.tasks?.length || 0) >= (y.tasks?.length || 0) ? x : y).filter(alive);
+  out.schoolwork = byId(a.schoolwork || [], b.schoolwork || [], pickNewer).filter(alive);
   out.examResults = byId(a.examResults, b.examResults, x => x);
   out.learningHistory = byId(a.learningHistory, b.learningHistory, x => x, h => h.finishedAt + '|' + h.deckName)
     .sort((x, y) => String(y.finishedAt).localeCompare(String(x.finishedAt))).slice(0, 200);

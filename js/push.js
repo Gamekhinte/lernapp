@@ -36,7 +36,7 @@ function pushStatusHtml() {
   }
   if (Notification.permission === 'denied') return '<p class="note" style="margin:0; color:var(--red);">Benachrichtigungen sind für die App blockiert. In den Einstellungen des Handys oder Browsers erlauben.</p>';
   return st.notify
-    ? `<p class="status-line ok">${icon('check', 15)} An: zu Beginn der Lernzeit und am Abend vor einer Arbeit</p><button class="btn btn-outline btn-sm" onclick="disablePush()">Ausschalten</button>`
+    ? `<p class="status-line ok">${icon('check', 15)} An: zu Beginn der Lernzeit, am Abend vor einer Arbeit und vor der Abgabe einer Verbesserung</p><button class="btn btn-outline btn-sm" onclick="disablePush()">Ausschalten</button>`
     : `<button class="btn btn-outline" onclick="enablePush()">${icon('bell', 16)} Erinnerungen einschalten</button>`;
 }
 
@@ -97,6 +97,7 @@ function computePushJobs() {
     if (d < 1 || d > 7) return;
     jobs.push({ t: at(todayStr(d - 1), '19:00'), title: `Morgen: ${exam.title}`, body: 'Kurz die Probearbeit machen oder die schwierigen Karten wiederholen.' });
   });
+  jobs.push(...schoolworkPushJobs());
   return jobs.filter(j => j.t > now).sort((a, b) => a.t - b.t).slice(0, 30);
 }
 
